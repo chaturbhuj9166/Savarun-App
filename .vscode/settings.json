@@ -1,0 +1,4 @@
+{
+  "// note": "Pin this project to ONE Flutter SDK so the IDE and terminal don't mix build caches (which caused kernel-version / DisplayCornerRadii errors).",
+  "dart.flutterSdkPath": "P:/Downloads/flutter"
+}

@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Firebase service account key — NEVER commit
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Uploaded images (local storage stand-in for Firebase Storage)
+uploads/
+!uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "967966230694",
+    "project_id": "savarun-app-b775b",
+    "storage_bucket": "savarun-app-b775b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:967966230694:android:db1d19f0bea2166c160c67",
+        "android_client_info": {
+          "package_name": "com.savarun.savarun"
+        }
+      },
+      "oauth_client": [ 
+        {
+          "client_id": "967966230694-p1h7l8kvh4ouh229cvktel0191orn6mc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key":   "AIzaSyB7gADuSKnx4WOeSgwNWdbyJB3qn2RkvRY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "967966230694-p1h7l8kvh4ouh229cvktel0191orn6mc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
