@@ -10,14 +10,48 @@ import { env } from './env.js';
  *   - firestore()             → read/write the same DB the app uses
  *   - storage()               → access outfit/clothing images if needed
  */
-let serviceAccount;
-try {
-  const path = resolve(process.cwd(), env.firebase.serviceAccountPath);
-  serviceAccount = JSON.parse(readFileSync(path, 'utf-8'));
-} catch (err) {
+const serviceAccount = loadServiceAccount();
+
+/**
+ * Prefer the inline JSON env var (works on hosts like Render where the key
+ * file is never committed), and fall back to a local file for development.
+ */
+function loadServiceAccount() {
+  const { serviceAccountJson, serviceAccountPath } = env.firebase;
+
+  if (serviceAccountJson) {
+    try {
+      const parsed = JSON.parse(serviceAccountJson);
+      // Env vars often arrive with the newlines in private_key escaped.
+      if (typeof parsed.private_key === 'string') {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      }
+      return parsed;
+    } catch (err) {
+      throw new Error(
+        `FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON. Paste the whole ` +
+          `service-account file as a single line. (${err.message})`
+      );
+    }
+  }
+
+  if (serviceAccountPath) {
+    try {
+      return JSON.parse(
+        readFileSync(resolve(process.cwd(), serviceAccountPath), 'utf-8')
+      );
+    } catch (err) {
+      throw new Error(
+        `Could not read Firebase service account at "${serviceAccountPath}". ` +
+          `Download it from Firebase Console → Project Settings → Service ` +
+          `Accounts. (${err.message})`
+      );
+    }
+  }
+
   throw new Error(
-    `Could not read Firebase service account at "${env.firebase.serviceAccountPath}". ` +
-      `Download it from Firebase Console → Project Settings → Service Accounts. (${err.message})`
+    'No Firebase credentials configured. Set FIREBASE_SERVICE_ACCOUNT_JSON ' +
+      '(recommended for hosting) or FIREBASE_SERVICE_ACCOUNT_PATH (local dev).'
   );
 }
 

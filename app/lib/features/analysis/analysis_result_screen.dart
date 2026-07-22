@@ -1,229 +1,238 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import 'models/outfit_analysis.dart';
-import 'widgets/fit_score_ring.dart';
+import 'widgets/score_blob.dart';
+import 'widgets/style_dna_view.dart';
 
-class AnalysisResultScreen extends StatelessWidget {
+/// The analysis result, laid out as the design's three swipeable pages:
+/// Fit Score → Style DNA → AI Feedback.
+class AnalysisResultScreen extends StatefulWidget {
   const AnalysisResultScreen({super.key, required this.analysis});
+  final OutfitAnalysis analysis;
+
+  @override
+  State<AnalysisResultScreen> createState() => _AnalysisResultScreenState();
+}
+
+class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
+  final _controller = PageController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.analysis;
+    final hasDna = a.styleDna.isNotEmpty;
+
+    final pages = <Widget>[
+      _FitScorePage(analysis: a),
+      if (hasDna) StyleDnaView(analysis: a),
+      _FeedbackPage(analysis: a),
+    ];
+
+    return Scaffold(
+      backgroundColor: AppColors.canvas,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => context.go(Routes.home),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView(controller: _controller, children: pages),
+            ),
+            const SizedBox(height: 12),
+            SmoothPageIndicator(
+              controller: _controller,
+              count: pages.length,
+              effect: const ExpandingDotsEffect(
+                activeDotColor: AppColors.ink,
+                dotColor: AppColors.line,
+                dotHeight: 6,
+                dotWidth: 6,
+                expansionFactor: 3,
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Page 1 — the headline Fit Score.
+class _FitScorePage extends StatelessWidget {
+  const _FitScorePage({required this.analysis});
   final OutfitAnalysis analysis;
 
   @override
   Widget build(BuildContext context) {
     final a = analysis;
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text('Your Outfit Analysis'),
-        leading: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => context.go(Routes.home)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
         children: [
-          Center(child: FitScoreRing(score: a.fitScore)),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(_scoreLabel(a.fitScore),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary)),
+          const Text(
+            'Your Fit Score',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink,
+            ),
           ),
-          const SizedBox(height: 28),
-
+          const Spacer(),
+          ScoreBlob(score: a.fitScore),
+          const Spacer(),
+          Text(
+            _headline(a.fitScore),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
           if (a.summary.isNotEmpty) ...[
-            _Card(
-              title: 'AI Verdict',
-              child: Text(a.summary, style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.ink)),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          _Card(
-            title: 'Score Breakdown',
-            child: Column(children: [for (final f in a.factors) _FactorRow(factor: f)]),
-          ),
-          const SizedBox(height: 16),
-
-          _Card(
-            title: 'Detected',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (a.clothingTypes.isNotEmpty) _chips('Items', a.clothingTypes),
-                if (a.palette.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('Colors', style: TextStyle(fontSize: 12, color: AppColors.inkMuted)),
-                  const SizedBox(height: 6),
-                  Wrap(spacing: 8, runSpacing: 8, children: [for (final c in a.palette) _swatch(c)]),
-                ],
-                const SizedBox(height: 12),
-                Wrap(spacing: 8, runSpacing: 8, children: [
-                  _infoPill('Pattern', a.pattern),
-                  _infoPill('Fit', a.fitType),
-                  if (a.fabric.isNotEmpty) _infoPill('Fabric', a.fabric.join(', ')),
-                ]),
-                if (a.accessories.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _chips('Accessories', a.accessories),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          if (a.suggestions.isNotEmpty)
-            _Card(
-              title: 'Suggestions',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [for (final s in a.suggestions) _SuggestionRow(s: s)],
+            const SizedBox(height: 12),
+            Text(
+              a.summary,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: AppColors.inkMuted,
               ),
             ),
-          const SizedBox(height: 24),
-
-          if (a.styleDna.isNotEmpty)
-            ElevatedButton.icon(
-              onPressed: () => context.push(Routes.styleDna, extra: a),
-              icon: const Icon(Icons.auto_awesome_rounded),
-              label: const Text('View Style DNA'),
-            ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => context.go(Routes.home),
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Analyze Another Outfit'),
+          ],
+          const Spacer(),
+          ElevatedButton(
+            onPressed: () => context.push(Routes.fullReport, extra: a),
+            child: const Text('See Full Report'),
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  String _scoreLabel(int s) {
-    if (s >= 85) return 'Excellent — you nailed it!';
-    if (s >= 70) return 'Great look 🔥';
-    if (s >= 50) return 'Good, with room to level up';
-    if (s == 0) return 'Couldn\'t read this outfit';
-    return 'Let\'s refine this fit';
+  String _headline(int s) {
+    if (s == 0) return "Couldn't read this outfit";
+    if (s >= 85) return 'Excellent Fit! ✨';
+    if (s >= 70) return 'Great Outfit! 🔥';
+    if (s >= 50) return 'Solid, with room to grow';
+    return "Let's refine this fit";
   }
+}
 
-  Widget _chips(String label, List<String> values) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+/// Page 3 — the design's "What's Working" / "Suggestions" cards.
+class _FeedbackPage extends StatelessWidget {
+  const _FeedbackPage({required this.analysis});
+  final OutfitAnalysis analysis;
+
+  @override
+  Widget build(BuildContext context) {
+    final working =
+        analysis.suggestions.where((s) => s.type == 'keep').toList();
+    final ideas = analysis.suggestions.where((s) => s.type != 'keep').toList();
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final v in values)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
-                child: Text(v, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              ),
-          ],
+        const Center(
+          child: Text(
+            'AI Feedback',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink,
+            ),
+          ),
         ),
+        const SizedBox(height: 24),
+        if (working.isNotEmpty)
+          _FeedbackCard(title: "What's Working", items: working),
+        if (working.isNotEmpty && ideas.isNotEmpty) const SizedBox(height: 16),
+        if (ideas.isNotEmpty)
+          _FeedbackCard(title: 'Suggestions', items: ideas),
+        if (working.isEmpty && ideas.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 40),
+            child: Text(
+              'No feedback for this photo.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.inkMuted),
+            ),
+          ),
       ],
-    );
-  }
-
-  Widget _swatch(PaletteColor c) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 22, height: 22, decoration: BoxDecoration(color: c.color, shape: BoxShape.circle, border: Border.all(color: AppColors.line))),
-        const SizedBox(width: 6),
-        Text(c.name, style: const TextStyle(fontSize: 12)),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
-
-  Widget _infoPill(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
-      child: Text('$label: $value', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
     );
   }
 }
 
-class _Card extends StatelessWidget {
-  const _Card({required this.title, required this.child});
+class _FeedbackCard extends StatelessWidget {
+  const _FeedbackCard({required this.title, required this.items});
   final String title;
-  final Widget child;
+  final List<Suggestion> items;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.line)),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
-          const SizedBox(height: 14),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _FactorRow extends StatelessWidget {
-  const _FactorRow({required this.factor});
-  final ScoreFactor factor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(factor.name, style: const TextStyle(fontSize: 14, color: AppColors.ink, fontWeight: FontWeight.w500))),
-              Text('${factor.weight}%', style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
-              const SizedBox(width: 10),
-              Text('${factor.score}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: factor.score / 100,
-              minHeight: 6,
-              backgroundColor: AppColors.line,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SuggestionRow extends StatelessWidget {
-  const _SuggestionRow({required this.s});
-  final Suggestion s;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = s.type == 'add'
-        ? Icons.add_circle_outline_rounded
-        : (s.type == 'swap' ? Icons.swap_horiz_rounded : Icons.check_circle_outline_rounded);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 18, color: AppColors.accent)),
-          const SizedBox(width: 10),
-          Expanded(child: Text(s.text, style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.ink))),
+          const SizedBox(height: 16),
+          for (final s in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(Icons.auto_awesome_rounded,
+                        size: 15, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      s.text,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        height: 1.5,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

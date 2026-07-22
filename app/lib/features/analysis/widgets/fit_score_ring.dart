@@ -41,10 +41,12 @@ class _FitScoreRingState extends State<FitScoreRing>
     super.dispose();
   }
 
+  /// The design keeps the meter on the brand purple scale (no red/green),
+  /// deepening as the score climbs.
   Color _colorFor(double value) {
-    if (value < 0.5) return AppColors.scoreLow;
-    if (value < 0.75) return AppColors.scoreMid;
-    return AppColors.scoreHigh;
+    if (value < 0.5) return AppColors.primaryLight;
+    if (value < 0.75) return AppColors.primary;
+    return AppColors.primaryDeep;
   }
 
   @override

@@ -16,12 +16,19 @@ import '../../features/analysis/capture_preview_screen.dart';
 import '../../features/analysis/analyzing_screen.dart';
 import '../../features/analysis/analysis_result_screen.dart';
 import '../../features/analysis/style_dna_screen.dart';
+import '../../features/analysis/full_report_screen.dart';
 import '../../features/analysis/models/outfit_analysis.dart';
 import '../../features/wardrobe/add_item_screen.dart';
+import '../../features/wardrobe/wardrobe_analytics_screen.dart';
+import '../../features/wardrobe/item_details_screen.dart';
+import '../../features/wardrobe/data/wardrobe_models.dart';
+import '../../features/shop/product_details_screen.dart';
+import '../../features/shop/data/shop_providers.dart';
 import '../../features/wardrobe/outfit_combos_screen.dart';
 import '../../features/wardrobe/create_outfit_screen.dart';
 import '../../features/social/explore_screen.dart';
 import '../../features/social/other_profile_screen.dart';
+import '../../features/social/followers_screen.dart';
 import '../../features/social/chat_list_screen.dart';
 import '../../features/social/chat_screen.dart';
 import '../../features/profile/outfit_history_screen.dart';
@@ -40,11 +47,16 @@ class Routes {
   static const analyzing = '/analyzing';
   static const analysisResult = '/analysis-result';
   static const styleDna = '/style-dna';
+  static const fullReport = '/full-report';
   static const addItem = '/add-item';
+  static const wardrobeAnalytics = '/wardrobe-analytics';
+  static const itemDetails = '/item-details';
+  static const productDetails = '/product';
   static const outfitCombos = '/outfit-combos';
   static const createOutfit = '/create-outfit';
   static const explore = '/explore';
   static const otherProfile = '/user';
+  static const followers = '/followers';
   static const chatList = '/chats';
   static const chat = '/chat';
   static const outfitHistory = '/outfit-history';
@@ -83,13 +95,25 @@ final appRouter = GoRouter(
     GoRoute(path: Routes.analyzing, builder: (c, s) => AnalyzingScreen(file: s.extra as XFile)),
     GoRoute(path: Routes.analysisResult, builder: (c, s) => AnalysisResultScreen(analysis: s.extra as OutfitAnalysis)),
     GoRoute(path: Routes.styleDna, builder: (c, s) => StyleDnaScreen(analysis: s.extra as OutfitAnalysis)),
+    GoRoute(path: Routes.fullReport, builder: (c, s) => FullReportScreen(analysis: s.extra as OutfitAnalysis)),
     GoRoute(path: Routes.addItem, builder: (c, s) => const AddItemScreen()),
+    GoRoute(path: Routes.wardrobeAnalytics, builder: (c, s) => const WardrobeAnalyticsScreen()),
+    GoRoute(path: Routes.itemDetails, builder: (c, s) => ItemDetailsScreen(item: s.extra as WardrobeItem)),
+    GoRoute(path: Routes.productDetails, builder: (c, s) => ProductDetailsScreen(product: s.extra as Product)),
     GoRoute(path: Routes.outfitCombos, builder: (c, s) => const OutfitCombosScreen()),
     GoRoute(path: Routes.createOutfit, builder: (c, s) => const CreateOutfitScreen()),
     GoRoute(path: Routes.explore, builder: (c, s) => const ExploreScreen()),
     GoRoute(
       path: Routes.otherProfile,
       builder: (c, s) => OtherProfileScreen(uid: s.extra as String),
+    ),
+    GoRoute(
+      path: Routes.followers,
+      // extra = (uid, initialTab): tab 0 = Followers, 1 = Following.
+      builder: (c, s) {
+        final args = s.extra as (String, int);
+        return FollowersScreen(uid: args.$1, initialTab: args.$2);
+      },
     ),
     GoRoute(path: Routes.chatList, builder: (c, s) => const ChatListScreen()),
     GoRoute(

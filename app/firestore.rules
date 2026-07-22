@@ -22,12 +22,20 @@ service cloud.firestore {
         allow write: if isOwner(uid);
       }
 
-      // Outfit sets & saved analyses belong to the owner only.
+      // Outfit sets belong to the owner only.
       match /outfits/{docId} {
         allow read, write: if isOwner(uid);
       }
-      match /analyses/{docId} {
-        allow read, write: if isOwner(uid);
+
+      // Outfit History — the analyses the backend saves. The owner always
+      // reads their own; others only when the profile's wardrobe is public,
+      // which is what puts past Fit Scores on a public profile.
+      // Writes come from the backend (Admin SDK), which bypasses these rules.
+      match /outfitHistory/{docId} {
+        allow read: if isOwner(uid)
+          || (isSignedIn()
+              && get(/databases/$(database)/documents/users/$(uid)).data.wardrobePublic == true);
+        allow write: if isOwner(uid);
       }
     }
 

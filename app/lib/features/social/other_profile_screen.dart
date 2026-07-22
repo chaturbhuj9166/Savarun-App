@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../analysis/widgets/past_scores_strip.dart';
 import '../profile/data/profile_providers.dart';
 import '../wardrobe/data/wardrobe_models.dart';
 import '../wardrobe/data/wardrobe_providers.dart';
@@ -56,12 +57,25 @@ class OtherProfileScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _Stat(value: '$followers', label: 'Followers'),
-                  _Stat(value: '$following', label: 'Following'),
+                  _Stat(
+                    value: '$followers',
+                    label: 'Followers',
+                    onTap: () =>
+                        context.push(Routes.followers, extra: (uid, 0)),
+                  ),
+                  _Stat(
+                    value: '$following',
+                    label: 'Following',
+                    onTap: () =>
+                        context.push(Routes.followers, extra: (uid, 1)),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
               _ActionButtons(uid: uid),
+              const SizedBox(height: 28),
+              // Only resolves when their profile is public (Firestore rules).
+              PastScoresStrip(uid: uid),
               const SizedBox(height: 24),
               const Text('Wardrobe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
@@ -175,17 +189,21 @@ class _MiniItem extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
+  const _Stat({required this.value, required this.label, this.onTap});
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
-      ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
+        ],
+      ),
     );
   }
 }

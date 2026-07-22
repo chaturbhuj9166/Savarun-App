@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { db, admin } from '../config/firebase.js';
+import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { analyzeOutfitImage } from '../services/openaiVision.service.js';
@@ -14,8 +15,10 @@ export const analyzeOutfit = asyncHandler(async (req, res) => {
   if (!req.file) throw ApiError.badRequest('No image file provided (field "image")');
   const save = req.body?.save !== 'false';
 
-  // Public URL to the stored image (for history/display).
-  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  // Public URL to the stored image (for history/display). PUBLIC_URL pins the
+  // canonical https origin in production; otherwise use the request's host.
+  const origin = env.publicUrl || `${req.protocol}://${req.get('host')}`;
+  const imageUrl = `${origin}/uploads/${req.file.filename}`;
 
   // The vision provider (Groq) can't reach our localhost URL, so we send the
   // image inline as a base64 data URL.

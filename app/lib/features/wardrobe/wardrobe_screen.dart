@@ -35,6 +35,11 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                   child: Text('My Wardrobe', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
                 ),
                 IconButton(
+                  onPressed: () => context.push(Routes.wardrobeAnalytics),
+                  icon: const Icon(Icons.insights_rounded),
+                  tooltip: 'Wardrobe Analytics',
+                ),
+                IconButton(
                   onPressed: () => context.push(Routes.outfitCombos),
                   icon: const Icon(Icons.dashboard_customize_rounded),
                   tooltip: 'Outfit Sets',
@@ -113,6 +118,10 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                         itemCount: items.length,
                         itemBuilder: (context, i) => _WardrobeTile(
                           item: items[i],
+                          onTap: () => context.push(
+                            Routes.itemDetails,
+                            extra: items[i],
+                          ),
                           onDelete: () => _confirmDelete(items[i]),
                         ),
                       ),
@@ -209,13 +218,19 @@ class _StatCard extends StatelessWidget {
 }
 
 class _WardrobeTile extends StatelessWidget {
-  const _WardrobeTile({required this.item, required this.onDelete});
+  const _WardrobeTile({
+    required this.item,
+    required this.onTap,
+    required this.onDelete,
+  });
   final WardrobeItem item;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: onTap,
       onLongPress: onDelete,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

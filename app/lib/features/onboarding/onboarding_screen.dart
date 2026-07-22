@@ -4,30 +4,45 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../core/router/app_router.dart';
+import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/blob_art.dart';
 
+/// One onboarding slide: full-bleed brand artwork with the copy from the
+/// client's design placed above or below it.
 class _Slide {
-  const _Slide(this.icon, this.title, this.subtitle);
-  final IconData icon;
-  final String title;
-  final String subtitle;
+  const _Slide({
+    required this.image,
+    this.title,
+    this.subtitle,
+    this.textAtTop = true,
+  });
+
+  final String image;
+  final String? title;
+  final String? subtitle;
+  final bool textAtTop;
 }
 
 const _slides = [
+  // Slide 1 — the brand mark.
+  _Slide(image: AppAssets.logoBackground),
   _Slide(
-    Icons.camera_alt_rounded,
-    'Analyze Your Outfit',
-    'Snap a photo and let AI score your look, break down your style & suggest improvements.',
+    image: AppAssets.onboardingStyle,
+    title: 'AI that\nunderstands\nyour style',
+    subtitle: 'Get smart outfit analysis\nand level up your\nfashion game.',
   ),
   _Slide(
-    Icons.checkroom_rounded,
-    'Your Digital Wardrobe',
-    'Add your clothes, auto-tag them with AI and build outfit combinations in seconds.',
+    image: AppAssets.onboardingWardrobe,
+    title: 'Your wardrobe,\nDigitized',
+    subtitle:
+        'Organize, manage and\ncreate amazing outfits\nfrom your own clothes.',
+    textAtTop: false,
   ),
   _Slide(
-    Icons.groups_rounded,
-    'Connect & Discover',
-    'Follow fashion-conscious people, chat, and shop products from top brands.',
+    image: AppAssets.onboardingCommunity,
+    title: 'Connect.\nShare.\nInspire.',
+    subtitle: 'Join a community of\nfashion lovers and\nshare your looks.',
   ),
 ];
 
@@ -68,87 +83,139 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLast = _page == _slides.length - 1;
+    final isBrandSlide = _page == 0;
+
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _finish,
-                child: const Text('Skip'),
-              ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: _slides.length,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (context, i) {
-                  final s = _slides[i];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 160,
-                          height: 160,
-                          decoration: const BoxDecoration(
-                            gradient: AppColors.brandGradient,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(s.icon, size: 72, color: Colors.white),
+      backgroundColor: AppColors.artCanvas,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _controller,
+            itemCount: _slides.length,
+            onPageChanged: (i) => setState(() => _page = i),
+            itemBuilder: (context, i) => _SlideView(slide: _slides[i]),
+          ),
+          // Bottom controls sit above the artwork.
+          Positioned(
+            left: 28,
+            right: 28,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: 72,
+                child: Row(
+                  children: [
+                    if (isBrandSlide)
+                      SmoothPageIndicator(
+                        controller: _controller,
+                        count: _slides.length,
+                        effect: const ExpandingDotsEffect(
+                          activeDotColor: AppColors.ink,
+                          dotColor: AppColors.line,
+                          dotHeight: 6,
+                          dotWidth: 6,
+                          expansionFactor: 3,
                         ),
-                        const SizedBox(height: 48),
-                        Text(
-                          s.title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink,
-                          ),
+                      )
+                    else
+                      TextButton(
+                        onPressed: _finish,
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(48, 40),
+                          alignment: Alignment.centerLeft,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          s.subtitle,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            height: 1.5,
-                            color: AppColors.inkMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                        child: const Text('SKIP'),
+                      ),
+                    const Spacer(),
+                    CircleArrowButton(onPressed: _next),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            SmoothPageIndicator(
-              controller: _controller,
-              count: _slides.length,
-              effect: const ExpandingDotsEffect(
-                activeDotColor: AppColors.primary,
-                dotColor: AppColors.line,
-                dotHeight: 8,
-                dotWidth: 8,
-                expansionFactor: 3,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: ElevatedButton(
-                onPressed: _next,
-                child: Text(isLast ? 'Get Started' : 'Next'),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _SlideView extends StatelessWidget {
+  const _SlideView({required this.slide});
+  final _Slide slide;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(slide.image, fit: BoxFit.cover),
+        if (slide.title == null)
+          // Brand slide — logo mark and wordmark, centred.
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(AppAssets.logoMark, width: 120),
+                const SizedBox(height: 8),
+                const Text(
+                  'SAVARUN',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 3,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'AI FASHION & STYLE\nPLATFORM',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.6,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.4,
+                    color: AppColors.inkMuted,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 40, 28, 96),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: slide.textAtTop
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.end,
+                children: [
+                  Text(
+                    slide.title!,
+                    style: const TextStyle(
+                      fontSize: 27,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    slide.subtitle!,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      height: 1.7,
+                      color: AppColors.inkMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -25,6 +25,11 @@ class WardrobeRepository {
     return _col(uid).add(item.toMap());
   }
 
+  /// Patch an existing item — used by the Item Details screen.
+  Future<void> update(String uid, String itemId, Map<String, dynamic> data) {
+    return _col(uid).doc(itemId).update(data);
+  }
+
   Future<void> delete(String uid, String itemId) {
     return _col(uid).doc(itemId).delete();
   }

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/router/app_router.dart';
+import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/savarun_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -42,34 +42,42 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.brandGradient),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SavarunLogo(fontSize: 44, onDark: true),
-              SizedBox(height: 12),
-              Text(
-                'AI Fashion & Style',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  letterSpacing: 1.2,
+      backgroundColor: AppColors.artCanvas,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(AppAssets.logoBackground, fit: BoxFit.cover),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(AppAssets.logoMark, width: 120),
+                const SizedBox(height: 8),
+                const Text(
+                  'SAVARUN',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 3,
+                    color: AppColors.ink,
+                  ),
                 ),
-              ),
-              SizedBox(height: 40),
-              SizedBox(
-                width: 26,
-                height: 26,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                const SizedBox(height: 10),
+                const Text(
+                  'AI FASHION & STYLE\nPLATFORM',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.6,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.4,
+                    color: AppColors.inkMuted,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

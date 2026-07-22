@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-/// Wraps Firebase Auth for Savarun — Google + Phone OTP — and makes sure a
+/// Wraps Firebase Auth for Savarun — Google, Apple and Phone OTP — and makes sure a
 /// matching `users/{uid}` profile document exists in Firestore on first login.
 class AuthService {
   AuthService(this._auth, this._db);
@@ -16,6 +16,17 @@ class AuthService {
   // ── Google ──
   Future<void> signInWithGoogle() async {
     final provider = GoogleAuthProvider();
+    final cred = kIsWeb
+        ? await _auth.signInWithPopup(provider)
+        : await _auth.signInWithProvider(provider);
+    await _ensureUserDoc(cred.user);
+  }
+
+  // ── Apple ──
+  /// Requires the Apple provider to be enabled in the Firebase console
+  /// (and an Apple Developer account for the native iOS flow).
+  Future<void> signInWithApple() async {
+    final provider = AppleAuthProvider()..addScope('email')..addScope('name');
     final cred = kIsWeb
         ? await _auth.signInWithPopup(provider)
         : await _auth.signInWithProvider(provider);

@@ -1,8 +1,13 @@
 import { ApiError } from "../utils/ApiError.js";
+import { env } from "../config/env.js";
 
-/** Build the public URL the app uses to fetch an uploaded file. */
+/**
+ * Build the public URL the app uses to fetch an uploaded file. PUBLIC_URL
+ * pins the canonical https origin behind a proxy; otherwise use the request.
+ */
 function publicUrl(req, filename) {
-  return `${req.protocol}://${req.get("host")}/uploads/${filename}`;
+  const origin = env.publicUrl || `${req.protocol}://${req.get("host")}`;
+  return `${origin}/uploads/${filename}`;
 }
 
 /** POST /api/uploads — single image (field name: "image"). */

@@ -65,12 +65,13 @@ class OutfitAnalysis {
   final List<Suggestion> suggestions;
   final String? imageUrl;
 
+  /// Style DNA slice colours, following the design's purple → sage scale.
   static const _dnaColors = [
+    AppColors.primaryDeep,
     AppColors.primary,
-    AppColors.accent,
     AppColors.primaryLight,
-    Color(0xFF00B8A9),
-    Color(0xFFF6A700),
+    AppColors.sage,
+    AppColors.sand,
   ];
 
   static const _factorLabels = {

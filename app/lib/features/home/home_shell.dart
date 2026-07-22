@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../profile/profile_screen.dart';
 import '../shop/shop_screen.dart';
+import '../social/explore_screen.dart';
 import '../wardrobe/wardrobe_screen.dart';
 import 'home_screen.dart';
 
-/// Main app shell with bottom navigation.
-/// Center "Camera" tab is the primary action (AI Outfit Analyzer).
+/// Main app shell with the design's minimal icon-only bottom navigation.
+/// The centre "Wardrobe" slot is the highlighted tab, matching the design.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -20,55 +19,84 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  // Real tab pages. Index 2 (Camera) is handled separately as a push.
   static const _pages = [
     HomeScreen(),
-    WardrobeScreen(),
-    SizedBox.shrink(), // camera placeholder slot (never shown)
     ShopScreen(),
+    WardrobeScreen(),
+    ExploreScreen(),
     ProfileScreen(),
   ];
 
-  static const _tabs = [
-    _TabItem(Icons.home_rounded, 'Home'),
-    _TabItem(Icons.checkroom_rounded, 'Wardrobe'),
-    _TabItem(Icons.camera_alt_rounded, 'Camera'),
-    _TabItem(Icons.shopping_bag_rounded, 'Shop'),
-    _TabItem(Icons.person_rounded, 'Profile'),
+  static const _icons = [
+    Icons.home_outlined,
+    Icons.shopping_bag_outlined,
+    Icons.checkroom_rounded,
+    Icons.search_rounded,
+    Icons.person_outline_rounded,
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) {
-          // Center "Camera" tab opens the AI Outfit Analyzer flow instead
-          // of switching to a tab page.
-          if (i == 2) {
-            context.push(Routes.camera);
-            return;
-          }
-          setState(() => _index = i);
-        },
-        backgroundColor: AppColors.white,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
-        destinations: [
-          for (final t in _tabs)
-            NavigationDestination(
-              icon: Icon(t.icon, color: AppColors.inkMuted),
-              selectedIcon: Icon(t.icon, color: AppColors.primary),
-              label: t.label,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.canvas,
+          border: Border(top: BorderSide(color: AppColors.line)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 62,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 0; i < _icons.length; i++)
+                  _NavIcon(
+                    icon: _icons[i],
+                    selected: _index == i,
+                    onTap: () => setState(() => _index = i),
+                  ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _TabItem {
-  const _TabItem(this.icon, this.label);
+/// Selected tab gets the design's soft pill behind the icon.
+class _NavIcon extends StatelessWidget {
+  const _NavIcon({
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
   final IconData icon;
-  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkResponse(
+      onTap: onTap,
+      radius: 28,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(
+          icon,
+          size: 23,
+          color: selected ? AppColors.ink : AppColors.inkMuted,
+        ),
+      ),
+    );
+  }
 }

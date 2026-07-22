@@ -29,10 +29,21 @@ export const env = {
     .filter(Boolean),
 
   firebase: {
-    serviceAccountPath: required('FIREBASE_SERVICE_ACCOUNT_PATH'),
+    // Two ways to supply the service account:
+    //   1. FIREBASE_SERVICE_ACCOUNT_JSON — the whole JSON pasted in one env
+    //      var. Required on hosts with no writable repo files (Render, etc.).
+    //   2. FIREBASE_SERVICE_ACCOUNT_PATH — a file path, convenient locally.
+    // Neither is `required()` here so the check can produce a clearer error.
+    serviceAccountJson: optional('FIREBASE_SERVICE_ACCOUNT_JSON'),
+    serviceAccountPath: optional('FIREBASE_SERVICE_ACCOUNT_PATH'),
     projectId: optional('FIREBASE_PROJECT_ID'),
     storageBucket: optional('FIREBASE_STORAGE_BUCKET'),
   },
+
+  /// Public origin of this server, e.g. https://savarun-api.onrender.com.
+  /// Used to build absolute URLs for uploaded images. Falls back to the
+  /// request's own host when unset.
+  publicUrl: optional('PUBLIC_URL').replace(/\/+$/, ''),
 
   // AI vision provider. Groq is OpenAI-compatible, so we reuse the OpenAI SDK
   // with a different base URL. Switch provider via AI_PROVIDER (groq | openai).
@@ -41,7 +52,7 @@ export const env = {
     groq: {
       apiKey: optional('GROQ_API_KEY'),
       baseUrl: 'https://api.groq.com/openai/v1',
-      visionModel: optional('GROQ_VISION_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct'),
+      visionModel: optional('GROQ_VISION_MODEL', 'qwen/qwen3.6-27b'),
     },
     openai: {
       apiKey: optional('OPENAI_API_KEY'),

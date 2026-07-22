@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../theme/app_assets.dart';
 import '../theme/app_colors.dart';
 
-/// Temporary text-based wordmark for Savarun.
-///
-/// TODO(logo): Replace with the real logo asset once provided.
-/// Just swap the build() body to an Image.asset('assets/images/logo.png').
+/// The Savarun wordmark: the client's "S" mark followed by the name.
 class SavarunLogo extends StatelessWidget {
   const SavarunLogo({
     super.key,
@@ -18,20 +17,28 @@ class SavarunLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = GoogleFonts.poppins(
-      fontSize: fontSize,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 1.5,
-    );
+    final color = onDark ? AppColors.white : AppColors.ink;
 
-    if (onDark) {
-      return Text('SAVARUN', style: style.copyWith(color: AppColors.white));
-    }
-
-    // Gradient wordmark on light backgrounds.
-    return ShaderMask(
-      shaderCallback: (bounds) => AppColors.brandGradient.createShader(bounds),
-      child: Text('SAVARUN', style: style.copyWith(color: Colors.white)),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          AppAssets.logoMark,
+          height: fontSize * 1.1,
+          // The mark ships as black artwork; tint it white on dark surfaces.
+          color: onDark ? AppColors.white : null,
+        ),
+        SizedBox(width: fontSize * 0.22),
+        Text(
+          'SAVARUN',
+          style: GoogleFonts.poppins(
+            fontSize: fontSize * 0.72,
+            fontWeight: FontWeight.w700,
+            letterSpacing: fontSize * 0.09,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }

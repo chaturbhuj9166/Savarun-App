@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/router/app_router.dart';
+import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/savarun_logo.dart';
 import 'data/auth_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -18,15 +18,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _busy = false;
 
-  Future<void> _google() async {
+  Future<void> _run(Future<void> Function() action, String label) async {
     setState(() => _busy = true);
     try {
-      await ref.read(authServiceProvider).signInWithGoogle();
+      await action();
       // Router redirect sends us to Home once the auth state updates.
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Google sign-in failed');
+      _showError(e.message ?? '$label sign-in failed');
     } catch (e) {
-      _showError('Google sign-in failed: $e');
+      _showError('$label sign-in failed: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -39,7 +39,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.read(authServiceProvider);
+
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: Stack(
           children: [
@@ -47,35 +50,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 children: [
-                  const Spacer(flex: 2),
-                  const SavarunLogo(fontSize: 40),
-                  const SizedBox(height: 12),
+                  const Spacer(flex: 3),
+                  Image.asset(AppAssets.logoMark, height: 52),
+                  const SizedBox(height: 36),
                   const Text(
-                    'Welcome back',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.ink),
+                    'Welcome Back! 👋',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   const Text(
-                    'Sign in to analyze your style',
+                    'Login to continue',
                     style: TextStyle(fontSize: 14, color: AppColors.inkMuted),
                   ),
                   const Spacer(flex: 2),
-                  _SocialButton(
+                  _AuthButton(
                     icon: Icons.g_mobiledata_rounded,
+                    iconColor: AppColors.danger,
                     label: 'Continue with Google',
-                    onTap: _busy ? null : _google,
+                    onTap: _busy
+                        ? null
+                        : () => _run(auth.signInWithGoogle, 'Google'),
                   ),
                   const SizedBox(height: 14),
-                  _SocialButton(
+                  _AuthButton(
+                    icon: Icons.apple_rounded,
+                    iconColor: AppColors.ink,
+                    label: 'Continue with Apple',
+                    onTap:
+                        _busy ? null : () => _run(auth.signInWithApple, 'Apple'),
+                  ),
+                  const SizedBox(height: 14),
+                  _AuthButton(
                     icon: Icons.phone_rounded,
-                    label: 'Continue with Phone',
-                    onTap: _busy ? null : () => context.push(Routes.phoneLogin),
+                    iconColor: AppColors.ink,
+                    label: 'Login with Phone',
+                    onTap:
+                        _busy ? null : () => context.push(Routes.phoneLogin),
                   ),
                   const Spacer(flex: 3),
-                  Text(
+                  const Text(
                     'By continuing you agree to our Terms & Privacy Policy',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: AppColors.inkMuted.withValues(alpha: 0.8)),
+                    style: TextStyle(fontSize: 12, color: AppColors.inkMuted),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -83,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             if (_busy)
               const ColoredBox(
-                color: Color(0x66000000),
+                color: Color(0x33000000),
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],
@@ -93,10 +113,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({required this.icon, required this.label, required this.onTap});
+/// White pill button with a leading brand icon, as used on the design's
+/// login screen.
+class _AuthButton extends StatelessWidget {
+  const _AuthButton({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
+  final Color iconColor;
   final String label;
   final VoidCallback? onTap;
 
@@ -105,10 +133,9 @@ class _SocialButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onTap,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 26, color: AppColors.ink),
-          const SizedBox(width: 12),
+          Icon(icon, size: 24, color: iconColor),
+          const SizedBox(width: 14),
           Text(label),
         ],
       ),

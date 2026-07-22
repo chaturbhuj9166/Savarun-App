@@ -66,11 +66,31 @@ class _ThreadTile extends ConsumerWidget {
             : null,
       ),
       title: Text(other?.name ?? 'Loading…', style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(thread.lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: thread.lastTime != null
-          ? Text(_shortTime(thread.lastTime!), style: const TextStyle(fontSize: 11, color: AppColors.inkMuted))
-          : null,
+      subtitle: Text(_preview(), maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: thread.awaitingMyDecision(me)
+          // A request waiting on me is more useful than a timestamp.
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.ink,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('Request',
+                  style: TextStyle(fontSize: 11, color: AppColors.white)),
+            )
+          : thread.lastTime != null
+              ? Text(_shortTime(thread.lastTime!), style: const TextStyle(fontSize: 11, color: AppColors.inkMuted))
+              : null,
     );
+  }
+
+  String _preview() {
+    if (thread.status == ChatStatus.pending) {
+      return thread.awaitingMyDecision(me)
+          ? 'Wants to chat with you'
+          : 'Chat request sent';
+    }
+    return thread.lastMessage;
   }
 
   String _shortTime(DateTime t) {

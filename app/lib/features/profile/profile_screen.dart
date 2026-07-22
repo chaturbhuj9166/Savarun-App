@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/network/upload_service.dart';
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../analysis/widgets/past_scores_strip.dart';
 import '../social/data/follow_providers.dart';
 import '../wardrobe/data/wardrobe_providers.dart';
 import 'data/profile_providers.dart';
@@ -65,9 +66,19 @@ class ProfileScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _Stat(value: '$followers', label: 'Followers'),
+                  _Stat(
+                    value: '$followers',
+                    label: 'Followers',
+                    onTap: () => context.push(Routes.followers,
+                        extra: (profile.uid, 0)),
+                  ),
                   _divider(),
-                  _Stat(value: '$following', label: 'Following'),
+                  _Stat(
+                    value: '$following',
+                    label: 'Following',
+                    onTap: () => context.push(Routes.followers,
+                        extra: (profile.uid, 1)),
+                  ),
                   _divider(),
                   _Stat(value: '$items', label: 'Items'),
                 ],
@@ -78,6 +89,9 @@ class ProfileScreen extends ConsumerWidget {
                 onPressed: () => context.push(Routes.editProfile),
                 child: const Text('Edit Profile'),
               ),
+              const SizedBox(height: 28),
+
+              PastScoresStrip(uid: profile.uid, isMe: true),
               const SizedBox(height: 24),
 
               // Public/private toggle — persisted to Firestore.
@@ -178,17 +192,21 @@ class _Avatar extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
+  const _Stat({required this.value, required this.label, this.onTap});
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
-      ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.inkMuted)),
+        ],
+      ),
     );
   }
 }

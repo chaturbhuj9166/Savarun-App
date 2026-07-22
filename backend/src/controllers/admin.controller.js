@@ -51,6 +51,7 @@ async function computeTrendingStyles() {
     .map(([category, weight]) => ({ category, weight }))
     .sort((a, b) => b.weight - a.weight)
     .slice(0, 8);
+    
 }
 
 /* ─────────────── Brand & Product Management ─────────────── */

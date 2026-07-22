@@ -54,3 +54,25 @@ final followingCountProvider = StreamProvider.family<int, String>((ref, uid) {
       .snapshots()
       .map((snap) => snap.size);
 });
+
+/// The uids following [uid] — powers the Followers tab.
+final followerUidsProvider =
+    StreamProvider.family<List<String>, String>((ref, uid) {
+  return FirebaseFirestore.instance
+      .collection('follows')
+      .where('followingUid', isEqualTo: uid)
+      .snapshots()
+      .map((snap) =>
+          snap.docs.map((d) => d['followerUid'] as String).toList());
+});
+
+/// The uids [uid] follows — powers the Following tab.
+final followingUidsProvider =
+    StreamProvider.family<List<String>, String>((ref, uid) {
+  return FirebaseFirestore.instance
+      .collection('follows')
+      .where('followerUid', isEqualTo: uid)
+      .snapshots()
+      .map((snap) =>
+          snap.docs.map((d) => d['followingUid'] as String).toList());
+});

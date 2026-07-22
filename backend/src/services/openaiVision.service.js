@@ -1,4 +1,4 @@
-import { openai, VISION_MODEL } from '../config/openai.js';
+import { openai, VISION_MODEL, AI_PROVIDER } from '../config/openai.js';
 import { ApiError } from '../utils/ApiError.js';
 
 /**
@@ -53,7 +53,15 @@ export async function analyzeOutfitImage(imageUrl) {
     completion = await openai.chat.completions.create({
       model: VISION_MODEL,
       temperature: 0.4,
-      max_tokens: 1200,
+      max_tokens: 2000,
+      // Force a JSON-only reply. Groq's vision model is a reasoning model whose
+      // thinking tokens count against max_tokens — leaving it on truncates the
+      // answer and Groq rejects it with "Failed to validate JSON". Turning
+      // reasoning off keeps the response short and strictly parseable.
+      response_format: { type: 'json_object' },
+      ...(AI_PROVIDER === 'groq'
+        ? { reasoning_effort: 'none', reasoning_format: 'hidden' }
+        : {}),
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         {
@@ -78,7 +86,11 @@ export async function analyzeOutfitImage(imageUrl) {
 }
 
 /** Pull a JSON object out of a model response (handles ```json fences / prose). */
-function extractJson(text) {
+function extractJson(raw) {
+  // Reasoning models can prefix a <think>...</think> trace. Drop it before
+  // looking for the JSON body, otherwise braces inside it confuse the scan.
+  const text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
   // Try direct parse first.
   try {
     return JSON.parse(text);

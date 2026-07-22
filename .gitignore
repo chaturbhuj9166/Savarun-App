@@ -1,0 +1,15 @@
+# Editor / IDE settings — machine-specific, not part of the project.
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets — never commit. (Also covered by backend/.gitignore.)
+.env
+.env.local
+.env.*.local
+serviceAccountKey.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json

@@ -12,6 +12,11 @@ import apiRoutes from './routes/index.js';
 export function createApp() {
   const app = express();
 
+  // Hosts like Render terminate TLS at a proxy. Without this, req.protocol is
+  // "http" (so saved image URLs become http:// and browsers block them as
+  // mixed content) and express-rate-limit sees every client as the same IP.
+  app.set('trust proxy', 1);
+
   // Allow images to be embedded cross-origin (the Flutter app loads them).
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(compression());
