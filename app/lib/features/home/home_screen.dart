@@ -68,7 +68,11 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
+          // Featured Brand (Module 4) — shown at the top of Home when the admin
+          // sets one; renders nothing otherwise.
+          const _FeaturedBrandBanner(),
+          const SizedBox(height: 8),
           const Text(
             'How do you feel\nabout your outfit today?',
             style: TextStyle(
@@ -331,6 +335,124 @@ class _RecentStrip extends ConsumerWidget {
             itemCount: shown.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => _RecentCard(entry: shown[i]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The admin-chosen Featured Brand banner (Module 4). Sits near the top of
+/// Home and disappears entirely when no brand is featured.
+class _FeaturedBrandBanner extends ConsumerWidget {
+  const _FeaturedBrandBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final featured = ref.watch(featuredBrandProvider);
+
+    return featured.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (fb) {
+        if (fb == null || fb.products.isEmpty) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: AppColors.brandGradient,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'FEATURED',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      fb.brandName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 120,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: fb.products.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (context, i) {
+                    final p = fb.products[i];
+                    return GestureDetector(
+                      onTap: () =>
+                          context.push(Routes.productDetails, extra: p),
+                      child: SizedBox(
+                        width: 92,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                width: 92,
+                                height: 92,
+                                color: AppColors.white,
+                                child: p.imageUrl.isEmpty
+                                    ? const Icon(Icons.image_outlined,
+                                        color: AppColors.inkMuted)
+                                    : Image.network(
+                                        p.imageUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => const Icon(
+                                            Icons.image_outlined,
+                                            color: AppColors.inkMuted),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '₹${p.price}',
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },

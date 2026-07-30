@@ -43,6 +43,44 @@ export const trendingProducts = asyncHandler(async (req, res) => {
   res.json({ ok: true, data: items });
 });
 
+/**
+ * GET /api/affiliate/featured
+ * The admin-chosen Featured Brand for the top of the Home screen (Module 4),
+ * with its approved/visible products. Returns { data: null } when none is set.
+ */
+export const featuredBrand = asyncHandler(async (_req, res) => {
+  const cfg = await db.collection('config').doc('home').get();
+  const brandId = cfg.exists ? cfg.data().featuredBrandId : null;
+  if (!brandId) return res.json({ ok: true, data: null });
+
+  const [brandSnap, productsSnap] = await Promise.all([
+    db.collection('brands').doc(brandId).get(),
+    db
+      .collection('products')
+      .where('brandId', '==', brandId)
+      .where('approved', '==', true)
+      .where('hidden', '==', false)
+      .limit(10)
+      .get(),
+  ]);
+
+  const products = productsSnap.docs.map((d) => ({
+    id: d.id,
+    ...stripInternal(d.data()),
+  }));
+  // Nothing to show if the featured brand has no live products.
+  if (products.length === 0) return res.json({ ok: true, data: null });
+
+  res.json({
+    ok: true,
+    data: {
+      brandId,
+      brandName: brandSnap.exists ? brandSnap.data().name : products[0].brandName,
+      products,
+    },
+  });
+});
+
 const ClickBody = z.object({ productId: z.string().min(1) });
 
 /**

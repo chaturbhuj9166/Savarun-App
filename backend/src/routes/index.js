@@ -5,6 +5,7 @@ import affiliateRoutes from './affiliate.routes.js';
 import adminRoutes from './admin.routes.js';
 import authRoutes from "./auth.routes.js";
 import uploadRoutes from "./upload.routes.js";
+import postsRoutes from "./posts.routes.js";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get('/', (_req, res) => {
   res.json({
     ok: true,
     service: 'savarun-backend',
-    modules: ['analysis', 'wardrobe', 'affiliate', 'admin', 'auth', 'uploads'],
+    modules: ['analysis', 'wardrobe', 'affiliate', 'admin', 'auth', 'uploads', 'posts'],
   });
 });
 
@@ -22,5 +23,6 @@ router.use('/affiliate', affiliateRoutes);
 router.use('/admin', adminRoutes);
 router.use("/auth", authRoutes);
 router.use("/uploads", uploadRoutes);
+router.use("/posts", postsRoutes);
 
 export default router;

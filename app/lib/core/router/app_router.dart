@@ -127,12 +127,13 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: Routes.shareOutfit,
-      // extra = (imageUrl?, fitScore?) when seeded from an analysis result.
+      // extra = (imageUrl?, fitScore?, style?) when seeded from an analysis.
       builder: (c, s) {
-        final args = s.extra as (String?, int?)?;
+        final args = s.extra as (String?, int?, String?)?;
         return ShareOutfitScreen(
           seedImageUrl: args?.$1,
           seedFitScore: args?.$2,
+          seedStyle: args?.$3,
         );
       },
     ),

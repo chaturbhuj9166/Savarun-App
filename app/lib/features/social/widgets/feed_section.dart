@@ -124,21 +124,58 @@ class _PostCard extends ConsumerWidget {
                 ),
               ),
             ),
-          if (post.caption.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Text(
-                post.caption,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  height: 1.4,
-                  color: AppColors.inkSoft,
+          // Like row + caption.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 4, 14, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _LikeButton(post: post),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      post.caption,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        height: 1.4,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            )
-          else
-            const SizedBox(height: 12),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Heart toggle showing the live like count (popularity).
+class _LikeButton extends ConsumerWidget {
+  const _LikeButton({required this.post});
+  final OutfitPost post;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final liked = ref.watch(hasLikedProvider(post.id)).value ?? false;
+
+    return TextButton.icon(
+      onPressed: () => ref.read(feedRepoProvider).toggleLike(post.id, !liked),
+      style: TextButton.styleFrom(
+        foregroundColor: liked ? AppColors.danger : AppColors.inkMuted,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        minimumSize: const Size(0, 36),
+      ),
+      icon: Icon(
+        liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        size: 18,
+      ),
+      label: Text(
+        '${post.likes}',
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
     );
   }

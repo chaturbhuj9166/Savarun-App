@@ -54,6 +54,27 @@ final trendingProductsProvider =
   return (json['data'] as List).map((p) => Product.fromJson(p)).toList();
 });
 
+/// The admin-chosen Featured Brand for the top of Home (Module 4).
+class FeaturedBrand {
+  const FeaturedBrand({required this.brandName, required this.products});
+  final String brandName;
+  final List<Product> products;
+}
+
+/// Featured brand for Home; null when the admin hasn't set one (or it has no
+/// live products) — the Home section then renders nothing.
+final featuredBrandProvider =
+    FutureProvider.autoDispose<FeaturedBrand?>((ref) async {
+  const client = ApiClient();
+  final json = await client.get(AppConfig.affiliateFeaturedEndpoint);
+  final data = json['data'];
+  if (data == null) return null;
+  return FeaturedBrand(
+    brandName: data['brandName'] ?? '',
+    products: (data['products'] as List).map((p) => Product.fromJson(p)).toList(),
+  );
+});
+
 /// One of the caller's own brand submissions and its review status.
 class MyBrand {
   const MyBrand({required this.id, required this.name, required this.status});

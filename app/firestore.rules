@@ -39,9 +39,10 @@ service cloud.firestore {
       }
     }
 
-    // ── Outfit posts (the home feed) ──
-    // Anyone signed in can read the feed; you may only create/delete your own
-    // posts, and the post's authorUid must match you.
+    // ── Outfit posts (the home feed + inspiration grid) ──
+    // Anyone signed in can read; you may only create/delete your own posts.
+    // The `likes` counter is only ever written by the backend (Admin SDK),
+    // which bypasses these rules — clients can't inflate it.
     match /posts/{postId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn()
@@ -49,6 +50,13 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if isSignedIn()
         && resource.data.authorUid == request.auth.uid;
+    }
+
+    // Like markers (doc id `${postId}_${uid}`). Readable so the UI can show
+    // whether you've liked a post; writes go through the backend.
+    match /postLikes/{likeId} {
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     // ── Follows (edges: doc id `${followerUid}_${followingUid}`) ──

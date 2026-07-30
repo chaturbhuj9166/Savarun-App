@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import {
   listProducts,
   trendingProducts,
+  featuredBrand,
   trackClick,
   submitBrand,
   myBrands,
@@ -14,6 +15,7 @@ router.use(requireAuth);
 
 router.get('/products', listProducts);
 router.get('/trending', trendingProducts);
+router.get('/featured', featuredBrand);
 router.post('/click', trackClick);
 
 // Brand submission (Module 4) — any user can apply; admin approves.

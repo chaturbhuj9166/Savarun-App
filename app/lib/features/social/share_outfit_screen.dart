@@ -13,10 +13,18 @@ import 'data/feed_providers.dart';
 /// Share an outfit to the home feed (Module 3). Optionally seeded with an
 /// analysed photo + Fit Score coming from the result screen.
 class ShareOutfitScreen extends ConsumerStatefulWidget {
-  const ShareOutfitScreen({super.key, this.seedImageUrl, this.seedFitScore});
+  const ShareOutfitScreen({
+    super.key,
+    this.seedImageUrl,
+    this.seedFitScore,
+    this.seedStyle,
+  });
 
   final String? seedImageUrl;
   final int? seedFitScore;
+
+  /// Dominant style from the analysis, so the post can feed the inspiration grid.
+  final String? seedStyle;
 
   @override
   ConsumerState<ShareOutfitScreen> createState() => _ShareOutfitScreenState();
@@ -68,6 +76,7 @@ class _ShareOutfitScreenState extends ConsumerState<ShareOutfitScreen> {
             imageUrl: imageUrl,
             caption: _caption.text.trim(),
             fitScore: widget.seedFitScore,
+            style: widget.seedStyle,
           );
 
       if (!mounted) return;

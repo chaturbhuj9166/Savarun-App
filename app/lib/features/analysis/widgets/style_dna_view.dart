@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../models/outfit_analysis.dart';
+import 'inspiration_grid.dart';
 
 /// Style DNA, laid out as in the design: a soft blob cluster sized by the
 /// style split, a dotted legend, and the dominant style underneath.
@@ -54,6 +55,10 @@ class StyleDnaView extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 32),
+          // Outfit Inspiration Grid (Module 1, Step 7) — similar looks from
+          // the community in the user's dominant style.
+          InspirationGrid(style: dna.first.style),
         ],
         const SizedBox(height: 16),
       ],

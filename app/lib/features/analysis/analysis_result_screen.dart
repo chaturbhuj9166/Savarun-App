@@ -130,7 +130,11 @@ class _FitScorePage extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () => context.push(
                 Routes.shareOutfit,
-                extra: (a.imageUrl, a.fitScore),
+                extra: (
+                  a.imageUrl,
+                  a.fitScore,
+                  a.styleDna.isNotEmpty ? a.styleDna.first.style : null,
+                ),
               ),
               icon: const Icon(Icons.ios_share_rounded, size: 18),
               label: const Text('Share to Feed'),
