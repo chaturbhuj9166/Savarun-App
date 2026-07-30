@@ -54,6 +54,27 @@ final trendingProductsProvider =
   return (json['data'] as List).map((p) => Product.fromJson(p)).toList();
 });
 
+/// One of the caller's own brand submissions and its review status.
+class MyBrand {
+  const MyBrand({required this.id, required this.name, required this.status});
+  final String id;
+  final String name;
+  final String status; // pending | approved | rejected
+
+  factory MyBrand.fromJson(Map<String, dynamic> d) => MyBrand(
+        id: d['id'] ?? '',
+        name: d['name'] ?? '',
+        status: d['status'] ?? 'pending',
+      );
+}
+
+/// The caller's brand submissions.
+final myBrandsProvider = FutureProvider.autoDispose<List<MyBrand>>((ref) async {
+  const client = ApiClient();
+  final json = await client.get(AppConfig.myBrandsEndpoint);
+  return (json['data'] as List).map((b) => MyBrand.fromJson(b)).toList();
+});
+
 final shopRepoProvider = Provider((ref) => const ShopRepository());
 
 class ShopRepository {
@@ -65,5 +86,36 @@ class ShopRepository {
     final json = await client
         .post(AppConfig.affiliateClickEndpoint, {'productId': productId});
     return (json['data'] as Map<String, dynamic>)['websiteUrl'] as String;
+  }
+
+  /// Submit a brand for admin review.
+  Future<void> submitBrand({required String name, String? website}) async {
+    const client = ApiClient();
+    await client.post(AppConfig.brandsEndpoint, {
+      'name': name,
+      if (website != null && website.isNotEmpty) 'website': website,
+    });
+  }
+
+  /// List a product under an approved brand.
+  Future<void> submitProduct({
+    required String brandId,
+    required String name,
+    required num price,
+    required String websiteUrl,
+    required String category,
+    String description = '',
+    String imageUrl = '',
+  }) async {
+    const client = ApiClient();
+    await client.post(AppConfig.brandProductsEndpoint, {
+      'brandId': brandId,
+      'name': name,
+      'price': price,
+      'websiteUrl': websiteUrl,
+      'category': category,
+      'description': description,
+      'imageUrl': imageUrl,
+    });
   }
 }

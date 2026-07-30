@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { analyzeOutfitImage } from '../services/openaiVision.service.js';
 import { getWeights, computeFitScore } from '../services/fitScore.service.js';
 import { validateVisionResult, normalizeStyleDna } from '../services/analysisNormalizer.js';
+import { storeUpload, isAbsolute } from '../services/storage.service.js';
 
 /**
  * POST /api/analysis  (multipart, field "image")
@@ -15,15 +16,18 @@ export const analyzeOutfit = asyncHandler(async (req, res) => {
   if (!req.file) throw ApiError.badRequest('No image file provided (field "image")');
   const save = req.body?.save !== 'false';
 
-  // Public URL to the stored image (for history/display). PUBLIC_URL pins the
-  // canonical https origin in production; otherwise use the request's host.
-  const origin = env.publicUrl || `${req.protocol}://${req.get('host')}`;
-  const imageUrl = `${origin}/uploads/${req.file.filename}`;
-
-  // The vision provider (Groq) can't reach our localhost URL, so we send the
+  // Read the bytes BEFORE storing — the firebase driver removes the local temp
+  // file after upload. The vision provider can't reach our host, so we send the
   // image inline as a base64 data URL.
   const base64 = readFileSync(req.file.path).toString('base64');
   const dataUrl = `data:${req.file.mimetype || 'image/jpeg'};base64,${base64}`;
+
+  // Persist the image (local /uploads or Firebase Storage) for history/display.
+  let imageUrl = await storeUpload(req.file, 'outfits');
+  if (!isAbsolute(imageUrl)) {
+    const origin = env.publicUrl || `${req.protocol}://${req.get('host')}`;
+    imageUrl = `${origin}${imageUrl}`;
+  }
 
   // 1. Vision model detects the outfit + scores each factor.
   const raw = await analyzeOutfitImage(dataUrl);

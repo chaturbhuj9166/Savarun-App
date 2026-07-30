@@ -23,6 +23,11 @@ class UploadService {
     );
   }
 
+  /// Pick several images at once (bulk wardrobe upload).
+  Future<List<XFile>> pickMultiFromGallery() {
+    return _picker.pickMultiImage(maxWidth: 1080, imageQuality: 85);
+  }
+
   /// Uploads [file] to the backend and returns the hosted image URL.
   Future<String> uploadImage(XFile file) async {
     final user = FirebaseAuth.instance.currentUser;

@@ -115,8 +115,9 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   Widget build(BuildContext context) {
     final isPhone = _step == _Step.enterPhone;
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: Text(isPhone ? 'Phone Login' : 'Verify OTP'),
+        title: Text(isPhone ? 'Login with Phone' : 'Verify OTP'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
@@ -132,12 +133,12 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               child: isPhone ? _phoneStep() : _otpStep(),
             ),
             if (_busy)
               const ColoredBox(
-                color: Color(0x66000000),
+                color: Color(0x33000000),
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],
@@ -150,24 +151,33 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 20),
+        const Text('Enter your\nphone number',
+            style: TextStyle(
+                fontSize: 26,
+                height: 1.25,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink)),
         const SizedBox(height: 12),
-        const Text('Enter your phone number',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
         const Text("We'll send you a 6-digit verification code.",
-            style: TextStyle(color: AppColors.inkMuted)),
-        const SizedBox(height: 28),
+            style: TextStyle(fontSize: 14, color: AppColors.inkMuted)),
+        const SizedBox(height: 32),
         TextField(
           controller: _phoneController,
           keyboardType: TextInputType.phone,
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]'))
+          ],
           decoration: const InputDecoration(
             hintText: '+91 98765 43210',
-            prefixIcon: Icon(Icons.phone_rounded),
+            prefixIcon:
+                Icon(Icons.phone_rounded, color: AppColors.inkMuted),
           ),
         ),
         const SizedBox(height: 24),
-        ElevatedButton(onPressed: _busy ? null : _sendOtp, child: const Text('Send OTP')),
+        ElevatedButton(
+            onPressed: _busy ? null : _sendOtp,
+            child: const Text('Send OTP')),
         // reCAPTCHA (web) renders here automatically when needed.
       ],
     );
@@ -177,24 +187,31 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
+        const SizedBox(height: 20),
         const Text('Enter the code',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
+            style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink)),
+        const SizedBox(height: 12),
         Text('Sent to $_phoneE164',
-            style: const TextStyle(color: AppColors.inkMuted)),
-        const SizedBox(height: 28),
+            style: const TextStyle(fontSize: 14, color: AppColors.inkMuted)),
+        const SizedBox(height: 32),
         TextField(
           controller: _otpController,
           keyboardType: TextInputType.number,
           maxLength: 6,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+              fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.w700),
           textAlign: TextAlign.center,
-          decoration: const InputDecoration(hintText: '••••••', counterText: ''),
+          decoration:
+              const InputDecoration(hintText: '••••••', counterText: ''),
         ),
         const SizedBox(height: 24),
-        ElevatedButton(onPressed: _busy ? null : _verifyOtp, child: const Text('Verify & Continue')),
+        ElevatedButton(
+            onPressed: _busy ? null : _verifyOtp,
+            child: const Text('Verify & Continue')),
         const SizedBox(height: 12),
         Center(
           child: TextButton(

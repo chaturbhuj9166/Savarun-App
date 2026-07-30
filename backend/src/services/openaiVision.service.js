@@ -85,6 +85,57 @@ export async function analyzeOutfitImage(imageUrl) {
   return parsed;
 }
 
+const TAG_PROMPT = `You are Savarun's wardrobe cataloguer. You receive a photo of a SINGLE clothing item and return strict JSON describing it. Respond with ONLY this object:
+
+{
+  "name": "string",          // short human name, e.g. "Black Oversized Hoodie"
+  "category": "Tops | Bottoms | Footwear | Outerwear | Accessories",
+  "colorName": "string",     // dominant colour name, e.g. "Black"
+  "colorHex": "#RRGGBB",     // dominant colour hex
+  "fabric": "Cotton | Denim | Linen | Silk | Wool | Polyester | Leather | Other",
+  "season": "Summer | Winter | All-season",
+  "formality": "Casual | Smart Casual | Formal"
+}
+
+Pick the single best value for each field. Output valid JSON only, no prose.`;
+
+/**
+ * Auto-tag a single wardrobe item photo (Module 2). Returns the same fields
+ * the Add-Item form uses, so the app can pre-fill them.
+ */
+export async function tagClothingImage(imageUrl) {
+  let completion;
+  try {
+    completion = await openai.chat.completions.create({
+      model: VISION_MODEL,
+      temperature: 0.2,
+      max_tokens: 600,
+      response_format: { type: 'json_object' },
+      ...(AI_PROVIDER === 'groq'
+        ? { reasoning_effort: 'none', reasoning_format: 'hidden' }
+        : {}),
+      messages: [
+        { role: 'system', content: TAG_PROMPT },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Tag this clothing item. Return ONLY the JSON.' },
+            { type: 'image_url', image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+    });
+  } catch (err) {
+    throw new ApiError(502, `Vision model request failed: ${err.message}`);
+  }
+
+  const raw = completion.choices?.[0]?.message?.content;
+  if (!raw) throw new ApiError(502, 'Vision model returned an empty response');
+  const parsed = extractJson(raw);
+  if (!parsed) throw new ApiError(502, 'Vision model returned invalid JSON');
+  return parsed;
+}
+
 /** Pull a JSON object out of a model response (handles ```json fences / prose). */
 function extractJson(raw) {
   // Reasoning models can prefix a <think>...</think> trace. Drop it before

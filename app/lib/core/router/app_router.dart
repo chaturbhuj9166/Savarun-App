@@ -21,19 +21,23 @@ import '../../features/analysis/models/outfit_analysis.dart';
 import '../../features/wardrobe/add_item_screen.dart';
 import '../../features/wardrobe/wardrobe_analytics_screen.dart';
 import '../../features/wardrobe/item_details_screen.dart';
+import '../../features/wardrobe/bulk_add_screen.dart';
 import '../../features/wardrobe/data/wardrobe_models.dart';
 import '../../features/shop/product_details_screen.dart';
+import '../../features/shop/sell_on_savarun_screen.dart';
 import '../../features/shop/data/shop_providers.dart';
 import '../../features/wardrobe/outfit_combos_screen.dart';
 import '../../features/wardrobe/create_outfit_screen.dart';
 import '../../features/social/explore_screen.dart';
 import '../../features/social/other_profile_screen.dart';
 import '../../features/social/followers_screen.dart';
+import '../../features/social/share_outfit_screen.dart';
 import '../../features/social/chat_list_screen.dart';
 import '../../features/social/chat_screen.dart';
 import '../../features/profile/outfit_history_screen.dart';
 import '../../features/profile/settings_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
+import '../../features/admin/admin_dashboard_screen.dart';
 
 /// App route names kept in one place to avoid typos.
 class Routes {
@@ -49,20 +53,24 @@ class Routes {
   static const styleDna = '/style-dna';
   static const fullReport = '/full-report';
   static const addItem = '/add-item';
+  static const bulkAdd = '/bulk-add';
   static const wardrobeAnalytics = '/wardrobe-analytics';
   static const itemDetails = '/item-details';
   static const productDetails = '/product';
+  static const sellOnSavarun = '/sell';
   static const outfitCombos = '/outfit-combos';
   static const createOutfit = '/create-outfit';
   static const explore = '/explore';
   static const otherProfile = '/user';
   static const followers = '/followers';
+  static const shareOutfit = '/share-outfit';
   static const chatList = '/chats';
   static const chat = '/chat';
   static const outfitHistory = '/outfit-history';
   static const settings = '/settings';
   static const editProfile = '/edit-profile';
   static const phoneLogin = '/phone-login';
+  static const admin = '/admin';
 }
 
 /// Locations a logged-out user is allowed to sit on.
@@ -97,9 +105,11 @@ final appRouter = GoRouter(
     GoRoute(path: Routes.styleDna, builder: (c, s) => StyleDnaScreen(analysis: s.extra as OutfitAnalysis)),
     GoRoute(path: Routes.fullReport, builder: (c, s) => FullReportScreen(analysis: s.extra as OutfitAnalysis)),
     GoRoute(path: Routes.addItem, builder: (c, s) => const AddItemScreen()),
+    GoRoute(path: Routes.bulkAdd, builder: (c, s) => const BulkAddScreen()),
     GoRoute(path: Routes.wardrobeAnalytics, builder: (c, s) => const WardrobeAnalyticsScreen()),
     GoRoute(path: Routes.itemDetails, builder: (c, s) => ItemDetailsScreen(item: s.extra as WardrobeItem)),
     GoRoute(path: Routes.productDetails, builder: (c, s) => ProductDetailsScreen(product: s.extra as Product)),
+    GoRoute(path: Routes.sellOnSavarun, builder: (c, s) => const SellOnSavarunScreen()),
     GoRoute(path: Routes.outfitCombos, builder: (c, s) => const OutfitCombosScreen()),
     GoRoute(path: Routes.createOutfit, builder: (c, s) => const CreateOutfitScreen()),
     GoRoute(path: Routes.explore, builder: (c, s) => const ExploreScreen()),
@@ -115,6 +125,17 @@ final appRouter = GoRouter(
         return FollowersScreen(uid: args.$1, initialTab: args.$2);
       },
     ),
+    GoRoute(
+      path: Routes.shareOutfit,
+      // extra = (imageUrl?, fitScore?) when seeded from an analysis result.
+      builder: (c, s) {
+        final args = s.extra as (String?, int?)?;
+        return ShareOutfitScreen(
+          seedImageUrl: args?.$1,
+          seedFitScore: args?.$2,
+        );
+      },
+    ),
     GoRoute(path: Routes.chatList, builder: (c, s) => const ChatListScreen()),
     GoRoute(
       path: Routes.chat,
@@ -123,6 +144,9 @@ final appRouter = GoRouter(
     GoRoute(path: Routes.outfitHistory, builder: (c, s) => const OutfitHistoryScreen()),
     GoRoute(path: Routes.settings, builder: (c, s) => const SettingsScreen()),
     GoRoute(path: Routes.editProfile, builder: (c, s) => const EditProfileScreen()),
+    // Admin Dashboard (Flutter Web). The screen itself re-checks the admin
+    // claim and bounces non-admins, so the route needs no special guard.
+    GoRoute(path: Routes.admin, builder: (c, s) => const AdminDashboardScreen()),
   ],
 );
 

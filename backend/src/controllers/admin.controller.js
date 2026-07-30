@@ -54,6 +54,55 @@ async function computeTrendingStyles() {
     
 }
 
+/* ─────────────── Listings for the dashboard ─────────────── */
+
+/** GET /api/admin/users?limit=50 — all users with activity + moderation status. */
+export const listUsers = asyncHandler(async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 50, 200);
+  const snap = await db.collection('users').limit(limit).get();
+  const users = snap.docs.map((d) => {
+    const u = d.data();
+    return {
+      uid: d.id,
+      name: u.name || u.username || 'Savarun User',
+      email: u.email || null,
+      photoURL: u.photoURL || null,
+      style: u.style || null,
+      status: u.status || 'active',
+      followers: u.followers || 0,
+    };
+  });
+  res.json({ ok: true, data: users });
+});
+
+/** GET /api/admin/brands?status=pending — brand applications. */
+export const listBrands = asyncHandler(async (req, res) => {
+  const status = (req.query.status || '').toString().trim();
+  let query = db.collection('brands');
+  if (status) query = query.where('status', '==', status);
+  const snap = await query.limit(200).get();
+  const brands = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  res.json({ ok: true, data: brands });
+});
+
+/** GET /api/admin/products — every product, including hidden/unapproved. */
+export const listAllProducts = asyncHandler(async (_req, res) => {
+  const snap = await db.collection('products').limit(200).get();
+  const products = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  res.json({ ok: true, data: products });
+});
+
+/** PATCH /api/admin/products/:id/approval  body: { approved: boolean } */
+export const setProductApproval = asyncHandler(async (req, res) => {
+  const approved = z.boolean().safeParse(req.body?.approved);
+  if (!approved.success) throw ApiError.badRequest('approved (boolean) is required');
+  const ref = db.collection('products').doc(req.params.id);
+  const snap = await ref.get();
+  if (!snap.exists) throw ApiError.notFound('Product not found');
+  await ref.update({ approved: approved.data });
+  res.json({ ok: true, data: { id: ref.id, approved: approved.data } });
+});
+
 /* ─────────────── Brand & Product Management ─────────────── */
 
 /** POST /api/admin/brands/:id/decision  body: { decision: 'approve'|'reject', note? } */

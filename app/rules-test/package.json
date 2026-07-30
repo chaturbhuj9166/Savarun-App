@@ -1,0 +1,16 @@
+{
+  "name": "savarun-rules-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "cd .. && rules-test/node_modules/.bin/firebase emulators:exec --only firestore --project savarun-rules-test --config firebase.emulator.json \"node rules-test/chat.test.mjs\""
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.13.0"
+  },
+  "comment": "firebase-tools is pinned to 13.x because 14+ requires JDK 21 and this machine has 17.",
+  "devDependencies": {
+    "firebase-tools": "13.35.1"
+  }
+}

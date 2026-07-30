@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../admin/data/admin_service.dart';
 import '../auth/data/auth_providers.dart';
 import 'data/profile_providers.dart';
 
@@ -98,6 +99,25 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          // Admin Dashboard entry — only shown to users with the admin claim.
+          ref.watch(isAdminProvider).maybeWhen(
+                data: (isAdmin) => isAdmin
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: _Group(
+                          title: 'Admin',
+                          children: [
+                            _Tile(
+                              icon: Icons.dashboard_rounded,
+                              label: 'Admin Dashboard',
+                              onTap: () => context.push(Routes.admin),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                orElse: () => const SizedBox.shrink(),
+              ),
           const SizedBox(height: 28),
           OutlinedButton.icon(
             // Router redirect sends us back to Login once signed out.

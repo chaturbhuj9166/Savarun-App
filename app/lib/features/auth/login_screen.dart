@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
@@ -74,14 +73,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onTap: _busy
                         ? null
                         : () => _run(auth.signInWithGoogle, 'Google'),
-                  ),
-                  const SizedBox(height: 14),
-                  _AuthButton(
-                    icon: Icons.apple_rounded,
-                    iconColor: AppColors.ink,
-                    label: 'Continue with Apple',
-                    onTap:
-                        _busy ? null : () => _run(auth.signInWithApple, 'Apple'),
                   ),
                   const SizedBox(height: 14),
                   _AuthButton(

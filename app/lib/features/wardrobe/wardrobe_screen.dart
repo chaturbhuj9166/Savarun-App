@@ -16,8 +16,154 @@ class WardrobeScreen extends ConsumerStatefulWidget {
 
 class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
   String _category = 'All';
+  String _query = '';
+
+  // Optional filters (null = any). Set from the filter sheet.
+  String? _season;
+  String? _formality;
+  String? _colorHex;
 
   static const _filters = ['All', ...WardrobeOptions.categories];
+
+  int get _activeFilterCount =>
+      (_season != null ? 1 : 0) +
+      (_formality != null ? 1 : 0) +
+      (_colorHex != null ? 1 : 0);
+
+  /// Apply the current search + filters to the full list.
+  List<WardrobeItem> _apply(List<WardrobeItem> all) {
+    return all.where((w) {
+      if (_category != 'All' && w.category != _category) return false;
+      if (_season != null && w.season != _season) return false;
+      if (_formality != null && w.formality != _formality) return false;
+      if (_colorHex != null && w.colorHex != _colorHex) return false;
+      if (_query.isNotEmpty) {
+        final hay =
+            '${w.name} ${w.category} ${w.fabric} ${w.season} ${w.formality}'
+                .toLowerCase();
+        if (!hay.contains(_query)) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  Future<void> _openFilterSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          Widget section(String title, List<String> options, String? selected,
+              ValueChanged<String?> onPick) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.inkMuted)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final o in options)
+                      ChoiceChip(
+                        label: Text(o),
+                        selected: selected == o,
+                        showCheckmark: false,
+                        onSelected: (_) {
+                          setSheet(() => onPick(selected == o ? null : o));
+                          setState(() {});
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Filters',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w700)),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setSheet(() {});
+                        setState(() {
+                          _season = null;
+                          _formality = null;
+                          _colorHex = null;
+                        });
+                      },
+                      child: const Text('Reset'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                section('Season', WardrobeOptions.seasons, _season,
+                    (v) => _season = v),
+                section('Formality', WardrobeOptions.formalities, _formality,
+                    (v) => _formality = v),
+                const Text('Color',
+                    style: TextStyle(fontSize: 13, color: AppColors.inkMuted)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final c in WardrobeOptions.colors)
+                      GestureDetector(
+                        onTap: () {
+                          setSheet(() {});
+                          setState(() =>
+                              _colorHex = _colorHex == c.hex ? null : c.hex);
+                        },
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: _hex(c.hex),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _colorHex == c.hex
+                                  ? AppColors.ink
+                                  : AppColors.line,
+                              width: _colorHex == c.hex ? 2.5 : 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Show results'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  static Color _hex(String hex) =>
+      Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +172,14 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
     return SafeArea(
       child: Column(
         children: [
-          // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+            padding: const EdgeInsets.fromLTRB(24, 16, 12, 4),
             child: Row(
               children: [
                 const Expanded(
-                  child: Text('My Wardrobe', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                  child: Text('My Wardrobe',
+                      style: TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.w700)),
                 ),
                 IconButton(
                   onPressed: () => context.push(Routes.wardrobeAnalytics),
@@ -46,85 +193,100 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
                 ),
                 IconButton(
                   onPressed: () => context.push(Routes.addItem),
-                  icon: const Icon(Icons.add_circle_rounded, color: AppColors.primary),
+                  icon: const Icon(Icons.add_circle_rounded,
+                      color: AppColors.ink),
                   tooltip: 'Add Item',
                 ),
               ],
             ),
           ),
-
           Expanded(
             child: itemsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Could not load wardrobe:\n$e', textAlign: TextAlign.center)),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                  child: Text('Could not load wardrobe:\n$e',
+                      textAlign: TextAlign.center)),
               data: (allItems) {
                 if (allItems.isEmpty) return const _EmptyWardrobe();
 
-                final items = _category == 'All'
-                    ? allItems
-                    : allItems.where((w) => w.category == _category).toList();
+                final items = _apply(allItems);
 
                 return Column(
                   children: [
-                    // Stats
+                    // Search + filter row.
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                       child: Row(
                         children: [
-                          _StatCard(label: 'Items', value: '${allItems.length}'),
-                          const SizedBox(width: 12),
-                          _StatCard(label: 'Categories', value: '${allItems.map((e) => e.category).toSet().length}'),
-                          const SizedBox(width: 12),
-                          _StatCard(label: 'Showing', value: '${items.length}'),
+                          Expanded(
+                            child: TextField(
+                              onChanged: (v) => setState(
+                                  () => _query = v.trim().toLowerCase()),
+                              decoration: const InputDecoration(
+                                hintText: 'Search by name, color, category',
+                                prefixIcon: Icon(Icons.search_rounded,
+                                    size: 20, color: AppColors.inkMuted),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          _FilterButton(
+                            count: _activeFilterCount,
+                            onTap: _openFilterSheet,
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
 
-                    // Category filter
+                    // Category chips.
                     SizedBox(
-                      height: 44,
+                      height: 36,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         itemCount: _filters.length,
                         separatorBuilder: (_, _) => const SizedBox(width: 8),
                         itemBuilder: (context, i) {
                           final cat = _filters[i];
-                          final selected = cat == _category;
                           return ChoiceChip(
                             label: Text(cat),
-                            selected: selected,
-                            onSelected: (_) => setState(() => _category = cat),
-                            selectedColor: AppColors.primary,
-                            labelStyle: TextStyle(color: selected ? Colors.white : AppColors.ink, fontWeight: FontWeight.w600),
-                            backgroundColor: AppColors.surface,
-                            side: BorderSide.none,
+                            selected: cat == _category,
+                            showCheckmark: false,
+                            onSelected: (_) =>
+                                setState(() => _category = cat),
                           );
                         },
                       ),
                     ),
+                    const SizedBox(height: 8),
 
-                    // Grid
                     Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(20),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 14,
-                          crossAxisSpacing: 14,
-                          childAspectRatio: 0.78,
-                        ),
-                        itemCount: items.length,
-                        itemBuilder: (context, i) => _WardrobeTile(
-                          item: items[i],
-                          onTap: () => context.push(
-                            Routes.itemDetails,
-                            extra: items[i],
-                          ),
-                          onDelete: () => _confirmDelete(items[i]),
-                        ),
-                      ),
+                      child: items.isEmpty
+                          ? const Center(
+                              child: Text('No items match your filters.',
+                                  style:
+                                      TextStyle(color: AppColors.inkMuted)),
+                            )
+                          : GridView.builder(
+                              padding: const EdgeInsets.all(24),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 14,
+                                crossAxisSpacing: 14,
+                                childAspectRatio: 0.72,
+                              ),
+                              itemCount: items.length,
+                              itemBuilder: (context, i) => _WardrobeTile(
+                                item: items[i],
+                                onTap: () => context.push(
+                                    Routes.itemDetails,
+                                    extra: items[i]),
+                                onDelete: () => _confirmDelete(items[i]),
+                              ),
+                            ),
                     ),
                   ],
                 );
@@ -145,10 +307,13 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
         title: const Text('Delete item?'),
         content: Text('Remove "${item.name}" from your wardrobe?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.danger)),
+            child: const Text('Delete',
+                style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -156,6 +321,54 @@ class _WardrobeScreenState extends ConsumerState<WardrobeScreen> {
     if (ok == true) {
       await ref.read(wardrobeRepoProvider).delete(uid, item.id);
     }
+  }
+}
+
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({required this.count, required this.onTap});
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = count > 0;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 54,
+        width: 54,
+        decoration: BoxDecoration(
+          color: active ? AppColors.ink : AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: active ? AppColors.ink : AppColors.line),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(Icons.tune_rounded,
+                color: active ? AppColors.white : AppColors.ink, size: 22),
+            if (active)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                      color: AppColors.primary, shape: BoxShape.circle),
+                  child: Center(
+                    child: Text('$count',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -171,45 +384,27 @@ class _EmptyWardrobe extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.checkroom_rounded, size: 44, color: AppColors.primary),
+              width: 88,
+              height: 88,
+              decoration: const BoxDecoration(
+                  color: AppColors.white, shape: BoxShape.circle),
+              child: const Icon(Icons.checkroom_rounded,
+                  size: 38, color: AppColors.inkMuted),
             ),
             const SizedBox(height: 20),
-            const Text('Your wardrobe is empty', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Text('Your wardrobe is empty',
+                style:
+                    TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             const Text('Add your clothes to build your digital closet.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.inkMuted)),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.inkMuted)),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => context.push(Routes.addItem),
               icon: const Icon(Icons.add),
               label: const Text('Add First Item'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          children: [
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.inkMuted)),
           ],
         ),
       ),
@@ -241,20 +436,30 @@ class _WardrobeTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: item.color,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.line),
                 image: item.photoURL != null
-                    ? DecorationImage(image: NetworkImage(item.photoURL!), fit: BoxFit.cover)
+                    ? DecorationImage(
+                        image: NetworkImage(item.photoURL!),
+                        fit: BoxFit.cover)
                     : null,
               ),
               child: item.photoURL != null
                   ? null
                   : Icon(Icons.checkroom_rounded,
-                      color: item.color.computeLuminance() > 0.6 ? AppColors.inkMuted : Colors.white70, size: 28),
+                      color: item.color.computeLuminance() > 0.6
+                          ? AppColors.inkMuted
+                          : Colors.white70,
+                      size: 28),
             ),
           ),
           const SizedBox(height: 6),
-          Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          Text(item.season, style: const TextStyle(fontSize: 10, color: AppColors.inkMuted)),
+          Text(item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(item.season,
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.inkMuted)),
         ],
       ),
     );

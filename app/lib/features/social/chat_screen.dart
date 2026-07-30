@@ -85,9 +85,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final me = ref.watch(authStateProvider).value?.uid;
     final other = ref.watch(userByUidProvider(widget.otherUid)).value;
     final thread = ref.watch(chatThreadProvider(widget.otherUid)).value;
-    final messagesAsync = ref.watch(chatMessagesProvider(widget.otherUid));
-
     final accepted = thread?.status == ChatStatus.accepted;
+
+    // Only subscribe once the thread is accepted — reading messages of a
+    // thread that doesn't exist yet is denied by the rules.
+    final messagesAsync =
+        accepted ? ref.watch(chatMessagesProvider(widget.otherUid)) : null;
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -122,7 +125,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: accepted
+            child: messagesAsync != null
                 ? messagesAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),

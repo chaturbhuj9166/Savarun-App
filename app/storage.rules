@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// All image uploads go through the Node backend (Firebase Admin SDK), which
+// bypasses these rules. The app reads images via download-token URLs, which
+// also bypass rules. So no client ever touches Storage directly — deny all
+// direct client access. This is the secure default.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

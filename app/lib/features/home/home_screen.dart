@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../analysis/data/history_providers.dart';
 import '../profile/data/profile_providers.dart';
 import '../shop/data/shop_providers.dart';
+import '../social/widgets/feed_section.dart';
 
 /// Home — the design's greeting, the big "Analyze Outfit" orb, and a strip of
 /// recent analyses.
@@ -103,6 +104,8 @@ class HomeScreen extends ConsumerWidget {
           const _RecentStrip(),
           const SizedBox(height: 32),
           const _TrendingBrands(),
+          const SizedBox(height: 32),
+          const FeedSection(),
         ],
       ),
     );

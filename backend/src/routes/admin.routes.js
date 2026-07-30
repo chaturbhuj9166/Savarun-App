@@ -3,6 +3,10 @@ import { requireAuth } from '../middleware/auth.js';
 import { adminOnly } from '../middleware/adminOnly.js';
 import {
   getAnalytics,
+  listUsers,
+  listBrands,
+  listAllProducts,
+  setProductApproval,
   decideBrand,
   setProductVisibility,
   setFeaturedBrand,
@@ -19,8 +23,13 @@ router.use(requireAuth, adminOnly);
 
 router.get('/analytics', getAnalytics);
 
+router.get('/users', listUsers);
+router.get('/brands', listBrands);
+router.get('/products', listAllProducts);
+
 router.post('/brands/:id/decision', decideBrand);
 router.patch('/products/:id/visibility', setProductVisibility);
+router.patch('/products/:id/approval', setProductApproval);
 router.put('/featured-brand', setFeaturedBrand);
 
 router.get('/fit-weights', getFitWeights);

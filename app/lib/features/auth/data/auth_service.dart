@@ -1,5 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// FirebaseAuthPlatform isn't re-exported by firebase_auth, so import it here
+// for the web RecaptchaVerifier.
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
+    show FirebaseAuthPlatform;
 import 'package:flutter/foundation.dart';
 
 /// Wraps Firebase Auth for Savarun — Google, Apple and Phone OTP — and makes sure a
@@ -35,8 +39,17 @@ class AuthService {
 
   // ── Phone OTP (web) ──
   /// Web sends the SMS and returns a confirmation object you later `.confirm()`.
+  ///
+  /// We pass an explicit invisible [RecaptchaVerifier]. Without it, the auto
+  /// verifier can produce "invalid application verifier / reCAPTCHA token
+  /// invalid or expired" and the send fails with HTTP 400.
   Future<ConfirmationResult> sendOtpWeb(String phoneE164) {
-    return _auth.signInWithPhoneNumber(phoneE164);
+    final verifier = RecaptchaVerifier(
+      auth: FirebaseAuthPlatform.instance,
+      size: RecaptchaVerifierSize.compact,
+      theme: RecaptchaVerifierTheme.light,
+    );
+    return _auth.signInWithPhoneNumber(phoneE164, verifier);
   }
 
   Future<void> confirmOtpWeb(ConfirmationResult result, String smsCode) async {

@@ -28,6 +28,11 @@ services:
         sync: false
       - key: FIREBASE_PROJECT_ID
         value: savarun-app-b775b
+      # Set to "firebase" and fill the bucket to store images permanently.
+      - key: STORAGE_DRIVER
+        value: firebase
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
 
       - key: AI_PROVIDER
         value: groq

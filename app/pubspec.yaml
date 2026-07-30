@@ -41,6 +41,8 @@ dependencies:
   shared_preferences: ^2.5.5
   firebase_core: ^4.11.0
   firebase_auth: ^6.5.4
+  # Needed directly for RecaptchaVerifier's FirebaseAuthPlatform on web OTP.
+  firebase_auth_platform_interface: ^9.0.3
   cloud_firestore: ^6.6.0
   image_picker: ^1.2.3
   http: ^1.6.0

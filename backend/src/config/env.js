@@ -45,6 +45,12 @@ export const env = {
   /// request's own host when unset.
   publicUrl: optional('PUBLIC_URL').replace(/\/+$/, ''),
 
+  /// Image storage backend: "local" (served from /uploads) or "firebase"
+  /// (Firebase Storage — permanent). Firebase needs FIREBASE_STORAGE_BUCKET.
+  storage: {
+    driver: optional('STORAGE_DRIVER', 'local'),
+  },
+
   // AI vision provider. Groq is OpenAI-compatible, so we reuse the OpenAI SDK
   // with a different base URL. Switch provider via AI_PROVIDER (groq | openai).
   ai: {

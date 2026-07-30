@@ -123,6 +123,18 @@ class _FitScorePage extends StatelessWidget {
             onPressed: () => context.push(Routes.fullReport, extra: a),
             child: const Text('See Full Report'),
           ),
+          const SizedBox(height: 12),
+          // Share this look to the home feed (Module 3). Only offer it when
+          // the analysis has a stored image to post.
+          if ((a.imageUrl ?? '').isNotEmpty)
+            OutlinedButton.icon(
+              onPressed: () => context.push(
+                Routes.shareOutfit,
+                extra: (a.imageUrl, a.fitScore),
+              ),
+              icon: const Icon(Icons.ios_share_rounded, size: 18),
+              label: const Text('Share to Feed'),
+            ),
           const SizedBox(height: 8),
         ],
       ),

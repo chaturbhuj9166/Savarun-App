@@ -24,6 +24,24 @@ class ApiClient {
     return _decode(res);
   }
 
+  Future<Map<String, dynamic>> patch(String url, Map<String, dynamic> body) async {
+    final res = await http.patch(
+      Uri.parse(url),
+      headers: {...await _headers(), 'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> put(String url, Map<String, dynamic> body) async {
+    final res = await http.put(
+      Uri.parse(url),
+      headers: {...await _headers(), 'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    return _decode(res);
+  }
+
   Future<Map<String, String>> _headers() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception('Not signed in');

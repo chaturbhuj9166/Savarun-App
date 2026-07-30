@@ -37,15 +37,26 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: Text(
-              'Marketplace',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 12, 0),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Marketplace',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.push(Routes.sellOnSavarun),
+                  icon: const Icon(Icons.storefront_outlined, size: 18),
+                  label: const Text('Sell'),
+                ),
+              ],
             ),
           ),
           Padding(
