@@ -50,6 +50,7 @@ class OutfitAnalysis {
     required this.summary,
     required this.trend,
     required this.suggestions,
+    required this.styleTips,
     this.imageUrl,
   });
 
@@ -67,6 +68,9 @@ class OutfitAnalysis {
   /// What's trending now and how this outfit fits it (Fashion Doctor report).
   final String trend;
   final List<Suggestion> suggestions;
+
+  /// "You'd look even better if…" ideas, shown behind the Suggestions button.
+  final List<String> styleTips;
   final String? imageUrl;
 
   /// Style DNA slice colours, following the design's purple → sage scale.
@@ -127,6 +131,7 @@ class OutfitAnalysis {
       suggestions: (fb['suggestions'] as List? ?? [])
           .map((s) => Suggestion(s['type'] ?? 'keep', s['text'] ?? ''))
           .toList(),
+      styleTips: List<String>.from(fb['styleTips'] ?? const []),
       imageUrl: d['imageUrl'],
     );
   }

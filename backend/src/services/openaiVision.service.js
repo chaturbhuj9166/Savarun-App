@@ -33,7 +33,8 @@ Respond with ONLY a JSON object in EXACTLY this shape:
     "trend": "string",                   // 1-2 sentences on what's trending NOW and how this outfit fits it
     "suggestions": [
       { "type": "add | swap | keep", "text": "string" }   // the "prescription": specific, trend-aware moves — mention concrete pieces, colours, or styling
-    ]
+    ],
+    "styleTips": ["string"]              // 4-5 warm "you'd look even better if..." ideas — concrete accessories, colours or pieces (e.g. "A silver watch would elevate this", "Black sneakers would sharpen the look")
   }
 }
 
@@ -43,7 +44,8 @@ Rules:
 - styleDna percentages are integers that sum to exactly 100.
 - Write suggestions like a stylist's prescription: concrete and trend-aware (e.g. "Swap the white sneakers for chunky dad-sneakers — they're big this season"). Include at least one "keep" for what already works.
 - "trend" must reference real, current fashion directions relevant to THIS outfit's style.
-- If the image has no recognisable outfit/person, set every factorScore to 0, put an explanation in feedback.summary, and set trend to "".`;
+- "styleTips" are encouraging, personalised "you'd look even better if…" ideas — each names a concrete accessory, colour, or piece (a watch, a chain, black shoes, a specific colour). Keep them positive and specific.
+- If the image has no recognisable outfit/person, set every factorScore to 0, put an explanation in feedback.summary, set trend to "", and styleTips to [].`;
 
 /**
  * Call GPT-4o Vision on an outfit image.

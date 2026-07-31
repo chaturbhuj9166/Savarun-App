@@ -270,8 +270,105 @@ class _FeedbackPage extends StatelessWidget {
               style: TextStyle(fontSize: 14, color: AppColors.inkMuted),
             ),
           ),
+
+        // "Suggestions for You" — reveals the AI's personalised styling ideas.
+        if (analysis.styleTips.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _showSuggestions(context, analysis.styleTips),
+            icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+            label: const Text('Suggestions for You'),
+          ),
+        ],
         const SizedBox(height: 8),
       ],
+    );
+  }
+
+  void _showSuggestions(BuildContext context, List<String> tips) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.canvas,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Row(
+              children: [
+                Icon(Icons.auto_awesome_rounded,
+                    size: 20, color: AppColors.primary),
+                SizedBox(width: 8),
+                Text(
+                  'Suggestions for You',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              "Small tweaks that would take this look further",
+              style: TextStyle(fontSize: 13, color: AppColors.inkMuted),
+            ),
+            const SizedBox(height: 20),
+            for (final tip in tips)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.checkroom_rounded,
+                          size: 15, color: AppColors.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        tip,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.45,
+                          color: AppColors.inkSoft,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
