@@ -22,10 +22,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final resultsAsync = ref.watch(exploreResultsProvider(ExploreQuery(style: _style, text: _text)));
+    // Style filter runs server-side; text is filtered on the client so the
+    // stream stays stable while typing (no per-keystroke query).
+    final resultsAsync = ref.watch(exploreUsersProvider(_style));
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(title: const Text('Explore')),
       body: Column(
         children: [
@@ -67,7 +69,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             child: resultsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not search:\n$e', textAlign: TextAlign.center))),
-              data: (users) {
+              data: (allUsers) {
+                final users = filterUsersByText(allUsers, _text);
                 if (users.isEmpty) {
                   return const Center(
                     child: Padding(
