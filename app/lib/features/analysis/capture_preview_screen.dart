@@ -50,6 +50,9 @@ class CapturePreviewScreen extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () => context.pop(),
                       style: OutlinedButton.styleFrom(
+                        // Transparent on the black screen — the theme's default
+                        // white fill would hide the white label.
+                        backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white54),
                       ),

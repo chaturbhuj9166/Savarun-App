@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -112,9 +113,34 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
     ];
   }
 
+  /// Perceptual colour distance in CIELAB (CIE76). Plain RGB distance confuses
+  /// dark muted greens (camo) with brown because their raw values are close;
+  /// LAB separates hue from lightness the way the eye does, so green stays green.
   double _dist(List<int> a, List<int> b) {
-    final dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
-    return (dr * dr + dg * dg + db * db).toDouble();
+    final la = _lab(a), lb = _lab(b);
+    final dl = la[0] - lb[0], da = la[1] - lb[1], dbb = la[2] - lb[2];
+    return dl * dl + da * da + dbb * dbb;
+  }
+
+  /// sRGB → CIELAB (D65).
+  List<double> _lab(List<int> rgb) {
+    double lin(int c) {
+      final v = c / 255.0;
+      return v <= 0.04045
+          ? v / 12.92
+          : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
+    }
+
+    final r = lin(rgb[0]), g = lin(rgb[1]), b = lin(rgb[2]);
+    // linear sRGB → XYZ, normalised to the D65 white point.
+    final x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+    final y = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+    final z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+
+    double f(double t) =>
+        t > 0.008856 ? math.pow(t, 1 / 3).toDouble() : (7.787 * t) + 16 / 116;
+    final fx = f(x), fy = f(y), fz = f(z);
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
   }
 
   Future<void> _save() async {

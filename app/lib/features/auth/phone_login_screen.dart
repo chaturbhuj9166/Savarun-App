@@ -20,8 +20,17 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
 
+  // Demo login: this number + code are registered as a Firebase "test phone
+  // number" (Auth → Sign-in method → Phone → Phone numbers for testing). No
+  // real SMS is sent and app verification is skipped, yet it produces a real
+  // Firebase session. When this number is used the OTP auto-fills and submits.
+  static const _demoPhone = '+919999999999';
+  static const _demoOtp = '123456';
+
   _Step _step = _Step.enterPhone;
   bool _busy = false;
+
+  bool get _isDemo => _phoneE164 == _demoPhone;
 
   // Platform-specific handles between the two steps.
   ConfirmationResult? _webConfirmation; // web
@@ -72,6 +81,15 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   void _goToOtp() {
     if (!mounted) return;
     setState(() => _step = _Step.enterOtp);
+
+    // Demo bypass: pre-fill the known test code and auto-verify so the login
+    // completes on its own — no typing needed.
+    if (_isDemo) {
+      _otpController.text = _demoOtp;
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (mounted && _step == _Step.enterOtp && !_busy) _verifyOtp();
+      });
+    }
   }
 
   Future<void> _verifyOtp() async {
@@ -176,8 +194,18 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ),
         const SizedBox(height: 24),
         ElevatedButton(
-            onPressed: _busy ? null : _sendOtp,
-            child: const Text('Send OTP')),
+          onPressed: _busy ? null : _sendOtp,
+          child: _busy
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.4,
+                    valueColor: AlwaysStoppedAnimation(AppColors.white),
+                  ),
+                )
+              : const Text('Send OTP'),
+        ),
         // reCAPTCHA (web) renders here automatically when needed.
       ],
     );
@@ -194,8 +222,10 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink)),
         const SizedBox(height: 12),
-        Text('Sent to $_phoneE164',
-            style: const TextStyle(fontSize: 14, color: AppColors.inkMuted)),
+        Text(
+          _isDemo ? 'Verifying automatically…' : 'Sent to $_phoneE164',
+          style: const TextStyle(fontSize: 14, color: AppColors.inkMuted),
+        ),
         const SizedBox(height: 32),
         TextField(
           controller: _otpController,
@@ -210,8 +240,18 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ),
         const SizedBox(height: 24),
         ElevatedButton(
-            onPressed: _busy ? null : _verifyOtp,
-            child: const Text('Verify & Continue')),
+          onPressed: _busy ? null : _verifyOtp,
+          child: _busy
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.4,
+                    valueColor: AlwaysStoppedAnimation(AppColors.white),
+                  ),
+                )
+              : const Text('Verify & Continue'),
+        ),
         const SizedBox(height: 12),
         Center(
           child: TextButton(

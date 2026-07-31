@@ -31,15 +31,19 @@ export const listProducts = asyncHandler(async (req, res) => {
  */
 export const trendingProducts = asyncHandler(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 10, 20);
+  // Two equality filters need no composite index; sort by clicks in memory
+  // (product counts are small) so we don't require an ordered index.
   const snap = await db
     .collection('products')
     .where('approved', '==', true)
     .where('hidden', '==', false)
-    .orderBy('clicks', 'desc')
-    .limit(limit)
     .get();
 
-  const items = snap.docs.map((d) => ({ id: d.id, ...stripInternal(d.data()) }));
+  const items = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+    .slice(0, limit)
+    .map(({ approved, hidden, categoryLower, ...rest }) => rest);
   res.json({ ok: true, data: items });
 });
 

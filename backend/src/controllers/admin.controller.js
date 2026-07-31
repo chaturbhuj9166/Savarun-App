@@ -23,12 +23,18 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
       .then((s) => s.data().count)
       .catch(() => 0),
     computeTrendingStyles(),
+    // Top products by clicks — sort in memory to avoid needing an index and
+    // to stay safe when the collection is empty.
     db
       .collection('products')
-      .orderBy('clicks', 'desc')
-      .limit(5)
       .get()
-      .then((snap) => snap.docs.map((d) => ({ id: d.id, name: d.data().name, clicks: d.data().clicks || 0 }))),
+      .then((snap) =>
+        snap.docs
+          .map((d) => ({ id: d.id, name: d.data().name, clicks: d.data().clicks || 0 }))
+          .sort((a, b) => b.clicks - a.clicks)
+          .slice(0, 5)
+      )
+      .catch(() => []),
   ]);
 
   res.json({
@@ -39,7 +45,14 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
 
 /** Aggregate style categories from recent outfit analyses across all users. */
 async function computeTrendingStyles() {
-  const snap = await db.collectionGroup('outfitHistory').orderBy('createdAt', 'desc').limit(500).get();
+  // No orderBy → no collection-group index required. We only aggregate style
+  // percentages, so ordering doesn't matter.
+  let snap;
+  try {
+    snap = await db.collectionGroup('outfitHistory').limit(500).get();
+  } catch {
+    return [];
+  }
   const counts = new Map();
   for (const doc of snap.docs) {
     for (const s of doc.data().styleDna || []) {

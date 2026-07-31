@@ -85,23 +85,43 @@ class _Dashboard extends StatelessWidget {
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
           title: const Text('Admin Dashboard'),
-          bottom: const TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            labelColor: AppColors.ink,
-            unselectedLabelColor: AppColors.inkMuted,
-            indicatorColor: AppColors.ink,
-            tabs: _tabs,
+          centerTitle: false,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            // Centre the tab bar within the same max width as the content so
+            // it doesn't stretch across a wide browser window.
+            child: Align(
+              alignment: Alignment.center,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 880),
+                child: const TabBar(
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: AppColors.ink,
+                  unselectedLabelColor: AppColors.inkMuted,
+                  indicatorColor: AppColors.ink,
+                  dividerColor: Colors.transparent,
+                  tabs: _tabs,
+                ),
+              ),
+            ),
           ),
         ),
-        body: const TabBarView(
-          children: [
-            AdminAnalyticsTab(),
-            AdminUsersTab(),
-            AdminBrandsTab(),
-            AdminProductsTab(),
-            AdminWeightsTab(),
-          ],
+        // Constrain the dashboard body so cards/lists don't span the whole
+        // width on desktop — it reads as a proper centred dashboard.
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: const TabBarView(
+              children: [
+                AdminAnalyticsTab(),
+                AdminUsersTab(),
+                AdminBrandsTab(),
+                AdminProductsTab(),
+                AdminWeightsTab(),
+              ],
+            ),
+          ),
         ),
       ),
     );

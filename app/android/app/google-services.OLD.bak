@@ -12,15 +12,7 @@
           "package_name": "com.savarun.savarun"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "967966230694-9af8t9nen8timois0umoj1ot496qsg2u.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.savarun.savarun",
-            "certificate_hash": "83f756385a99de70f6c97546813755151e28d2ac"
-          }
-        },
+      "oauth_client": [ 
         {
           "client_id": "967966230694-p1h7l8kvh4ouh229cvktel0191orn6mc.apps.googleusercontent.com",
           "client_type": 3
@@ -28,7 +20,7 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB7gADuSKnx4WOeSgwNWdbyJB3qn2RkvRY"
+          "current_key":   "AIzaSyB7gADuSKnx4WOeSgwNWdbyJB3qn2RkvRY"
         }
       ],
       "services": {
@@ -37,13 +29,6 @@
             {
               "client_id": "967966230694-p1h7l8kvh4ouh229cvktel0191orn6mc.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "967966230694-3tr50ib7kpnoa10d5haca7tdtqhr02lc.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.savarun.savarun"
-              }
             }
           ]
         }

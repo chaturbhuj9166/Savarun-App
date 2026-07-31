@@ -9,7 +9,7 @@ class AppConfig {
   static const String _override = String.fromEnvironment('BACKEND_URL');
 
   /// The deployed backend, used by release builds.
-  static const String _prodUrl = 'https://savarun-api.onrender.com';
+  static const String _prodUrl = 'https://savarun-app.onrender.com';
 
   /// Base URL of the Savarun Node/Express backend.
   ///

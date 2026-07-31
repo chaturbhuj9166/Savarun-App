@@ -50,7 +50,9 @@ class ApiClient {
 
   Map<String, dynamic> _decode(http.Response res) {
     final json = jsonDecode(res.body) as Map<String, dynamic>;
-    if (res.statusCode != 200 || json['ok'] != true) {
+    // 2xx are all success (POSTs that create return 201).
+    final ok = res.statusCode >= 200 && res.statusCode < 300;
+    if (!ok || json['ok'] != true) {
       throw Exception(json['error'] ?? 'Request failed (${res.statusCode})');
     }
     return json;

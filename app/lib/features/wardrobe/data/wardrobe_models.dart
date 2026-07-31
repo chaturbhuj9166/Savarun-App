@@ -75,6 +75,7 @@ class WardrobeOptions {
     (name: 'Red', hex: '#E74C3C'),
     (name: 'Pink', hex: '#FF7AC6'),
     (name: 'Green', hex: '#2ECC71'),
+    (name: 'Army Green', hex: '#4B5320'),
     (name: 'Olive', hex: '#808000'),
     (name: 'Beige', hex: '#C8A165'),
     (name: 'Brown', hex: '#5A3A22'),
