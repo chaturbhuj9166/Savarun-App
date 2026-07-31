@@ -72,15 +72,30 @@ class AdminUser {
 }
 
 class AdminBrand {
-  const AdminBrand({required this.id, required this.name, required this.status});
+  const AdminBrand({
+    required this.id,
+    required this.name,
+    required this.status,
+    required this.ownerName,
+    required this.ownerContact,
+    required this.website,
+  });
   final String id;
   final String name;
   final String status;
+  final String ownerName;
+
+  /// Email or phone of the applicant (whichever is available).
+  final String? ownerContact;
+  final String? website;
 
   factory AdminBrand.fromJson(Map<String, dynamic> d) => AdminBrand(
         id: d['id'] ?? '',
         name: d['name'] ?? '',
         status: d['status'] ?? 'pending',
+        ownerName: d['ownerName'] ?? 'Unknown user',
+        ownerContact: d['ownerContact'],
+        website: d['website'],
       );
 }
 

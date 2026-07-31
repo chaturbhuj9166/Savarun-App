@@ -88,14 +88,42 @@ export const listUsers = asyncHandler(async (req, res) => {
   res.json({ ok: true, data: users });
 });
 
-/** GET /api/admin/brands?status=pending — brand applications. */
+/** GET /api/admin/brands?status=pending — brand applications with applicant info. */
 export const listBrands = asyncHandler(async (req, res) => {
   const status = (req.query.status || '').toString().trim();
   let query = db.collection('brands');
   if (status) query = query.where('status', '==', status);
   const snap = await query.limit(200).get();
   const brands = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  res.json({ ok: true, data: brands });
+
+  // Attach the applicant's name/email so the admin knows who requested each
+  // brand. Look up each unique owner once.
+  const ownerIds = [...new Set(brands.map((b) => b.ownerUid).filter(Boolean))];
+  const owners = {};
+  await Promise.all(
+    ownerIds.map(async (uid) => {
+      const u = await db.collection('users').doc(uid).get();
+      if (u.exists) {
+        const data = u.data();
+        owners[uid] = {
+          name: data.name || data.username || 'Savarun User',
+          email: data.email || null,
+          phone: data.phone || null,
+        };
+      }
+    })
+  );
+
+  const withOwners = brands.map((b) => ({
+    ...b,
+    ownerName: owners[b.ownerUid]?.name || 'Unknown user',
+    ownerEmail: owners[b.ownerUid]?.email || null,
+    // Phone as a fallback identifier for users who logged in by phone.
+    ownerContact:
+      owners[b.ownerUid]?.email || owners[b.ownerUid]?.phone || null,
+  }));
+
+  res.json({ ok: true, data: withOwners });
 });
 
 /** GET /api/admin/products — every product, including hidden/unapproved. */

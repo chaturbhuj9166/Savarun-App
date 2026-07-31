@@ -75,6 +75,45 @@ class _BrandRow extends ConsumerWidget {
               StatusPill(label: label, color: color),
             ],
           ),
+          const SizedBox(height: 10),
+          // Who submitted this brand.
+          Row(
+            children: [
+              const Icon(Icons.person_outline_rounded,
+                  size: 15, color: AppColors.inkMuted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  brand.ownerContact != null
+                      ? '${brand.ownerName} · ${brand.ownerContact}'
+                      : brand.ownerName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12.5, color: AppColors.inkMuted),
+                ),
+              ),
+            ],
+          ),
+          if (brand.website != null && brand.website!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.link_rounded,
+                    size: 15, color: AppColors.inkMuted),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    brand.website!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12.5, color: AppColors.inkMuted),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (brand.status == 'pending') ...[
             const SizedBox(height: 14),
             Row(
