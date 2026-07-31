@@ -48,6 +48,7 @@ class OutfitAnalysis {
     required this.fitType,
     required this.accessories,
     required this.summary,
+    required this.trend,
     required this.suggestions,
     this.imageUrl,
   });
@@ -62,6 +63,9 @@ class OutfitAnalysis {
   final String fitType;
   final List<String> accessories;
   final String summary;
+
+  /// What's trending now and how this outfit fits it (Fashion Doctor report).
+  final String trend;
   final List<Suggestion> suggestions;
   final String? imageUrl;
 
@@ -119,6 +123,7 @@ class OutfitAnalysis {
       fitType: det['fitType'] ?? 'other',
       accessories: List<String>.from(det['accessories'] ?? const []),
       summary: fb['summary'] ?? '',
+      trend: fb['trend'] ?? '',
       suggestions: (fb['suggestions'] as List? ?? [])
           .map((s) => Suggestion(s['type'] ?? 'keep', s['text'] ?? ''))
           .toList(),

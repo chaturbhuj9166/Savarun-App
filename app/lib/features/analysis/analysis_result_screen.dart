@@ -154,7 +154,8 @@ class _FitScorePage extends StatelessWidget {
   }
 }
 
-/// Page 3 — the design's "What's Working" / "Suggestions" cards.
+/// Page 3 — the Fashion Doctor's report: diagnosis, trend pulse, what's working
+/// and the prescription (what to add/swap).
 class _FeedbackPage extends StatelessWidget {
   const _FeedbackPage({required this.analysis});
   final OutfitAnalysis analysis;
@@ -168,46 +169,129 @@ class _FeedbackPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 28),
       children: [
-        const Center(
-          child: Text(
-            'AI Feedback',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.ink,
-            ),
+        // "Fashion Doctor" report header.
+        Center(
+          child: Column(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.local_hospital_rounded,
+                        size: 14, color: AppColors.primary),
+                    SizedBox(width: 6),
+                    Text(
+                      'FASHION DOCTOR',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your Style Report',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 24),
-        if (working.isNotEmpty)
-          _FeedbackCard(title: "What's Working", items: working),
-        if (working.isNotEmpty && ideas.isNotEmpty) const SizedBox(height: 16),
-        if (ideas.isNotEmpty)
-          _FeedbackCard(title: 'Suggestions', items: ideas),
-        if (working.isEmpty && ideas.isEmpty)
+        const SizedBox(height: 22),
+
+        // Diagnosis (the overall verdict).
+        if (analysis.summary.isNotEmpty)
+          _ReportCard(
+            icon: Icons.medical_services_outlined,
+            title: 'Diagnosis',
+            child: Text(
+              analysis.summary,
+              style: const TextStyle(
+                  fontSize: 14, height: 1.5, color: AppColors.inkSoft),
+            ),
+          ),
+
+        // Trend pulse.
+        if (analysis.trend.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _ReportCard(
+            icon: Icons.trending_up_rounded,
+            title: 'Trend Pulse',
+            child: Text(
+              analysis.trend,
+              style: const TextStyle(
+                  fontSize: 14, height: 1.5, color: AppColors.inkSoft),
+            ),
+          ),
+        ],
+
+        // What's working.
+        if (working.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _ReportCard(
+            icon: Icons.check_circle_outline_rounded,
+            title: "What's Working",
+            child: _Bullets(items: working),
+          ),
+        ],
+
+        // Prescription (add / swap).
+        if (ideas.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _ReportCard(
+            icon: Icons.medication_outlined,
+            title: 'Prescription',
+            child: _Bullets(items: ideas),
+          ),
+        ],
+
+        if (analysis.summary.isEmpty &&
+            analysis.trend.isEmpty &&
+            working.isEmpty &&
+            ideas.isEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 40),
             child: Text(
-              'No feedback for this photo.',
+              'No report for this photo.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: AppColors.inkMuted),
             ),
           ),
+        const SizedBox(height: 8),
       ],
     );
   }
 }
 
-class _FeedbackCard extends StatelessWidget {
-  const _FeedbackCard({required this.title, required this.items});
+/// A titled card for one section of the Fashion Doctor report.
+class _ReportCard extends StatelessWidget {
+  const _ReportCard({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+  final IconData icon;
   final String title;
-  final List<Suggestion> items;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
@@ -215,42 +299,62 @@ class _FeedbackCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink,
-            ),
-          ),
-          const SizedBox(height: 16),
-          for (final s in items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(Icons.auto_awesome_rounded,
-                        size: 15, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      s.text,
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        height: 1.5,
-                        color: AppColors.inkSoft,
-                      ),
-                    ),
-                  ),
-                ],
+          Row(
+            children: [
+              Icon(icon, size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
         ],
       ),
     );
   }
 }
+
+/// Bullet list of suggestions.
+class _Bullets extends StatelessWidget {
+  const _Bullets({required this.items});
+  final List<Suggestion> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final s in items)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(Icons.arrow_right_rounded,
+                      size: 18, color: AppColors.primary),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    s.text,
+                    style: const TextStyle(
+                        fontSize: 13.5, height: 1.5, color: AppColors.inkSoft),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
