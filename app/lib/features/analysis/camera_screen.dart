@@ -54,24 +54,46 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     }
   }
 
-  Future<void> _startController(int index) async {
+  /// Start the camera at [index]. Some front (selfie) cameras don't support
+  /// the "high" preset and throw on initialize — so we retry at a lower preset
+  /// before giving up, and always clear the loading state. Returns success.
+  Future<bool> _startController(int index) async {
     final old = _controller;
-    final controller = CameraController(
-      _cameras[index],
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
-    await controller.initialize();
+
+    Future<CameraController?> tryStart(ResolutionPreset preset) async {
+      final c = CameraController(_cameras[index], preset, enableAudio: false);
+      try {
+        await c.initialize();
+        return c;
+      } catch (_) {
+        await c.dispose();
+        return null;
+      }
+    }
+
+    final controller =
+        await tryStart(ResolutionPreset.high) ??
+            await tryStart(ResolutionPreset.medium) ??
+            await tryStart(ResolutionPreset.low);
+
+    if (controller == null) {
+      // Couldn't start this camera at any resolution.
+      if (mounted) setState(() => _initializing = false);
+      return false;
+    }
+
     await old?.dispose();
     if (!mounted) {
       await controller.dispose();
-      return;
+      return false;
     }
     setState(() {
       _controller = controller;
       _index = index;
       _initializing = false;
+      _flashOn = false; // flash mode resets when switching cameras
     });
+    return true;
   }
 
   @override
@@ -124,8 +146,15 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   Future<void> _flip() async {
     if (_cameras.length < 2) return;
+    final target = (_index + 1) % _cameras.length;
+    final previous = _index;
     setState(() => _initializing = true);
-    await _startController((_index + 1) % _cameras.length);
+    final ok = await _startController(target);
+    if (!ok && mounted) {
+      // Switching failed — fall back to the camera that was working.
+      _toast('This camera is unavailable, switching back');
+      await _startController(previous);
+    }
   }
 
   void _toast(String msg) {
